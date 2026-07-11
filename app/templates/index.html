@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Predictive Maintenance System</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1 class="main-title">
+        AI Predictive Maintenance System
+    </h1>
+
+    <div class="card">
+
+        <h2>Equipment Diagnostics Input</h2>
+
+        <form id="prediction-form" action="/predict" method="POST">
+
+            <!-- Machine Type -->
+            <div class="form-group">
+
+                <label>
+                    <i class="fas fa-cogs"></i>
+                    Machine Variant Type
+                </label>
+
+                <select name="Type" required>
+                    <option value="L">Low Quality (Variant L) - 50% of Fleet</option>
+                    <option value="M">Medium Quality (Variant M) - 30% of Fleet</option>
+                    <option value="H" selected>High Quality (Variant H) - 20% of Fleet</option>
+                </select>
+
+            </div>
+
+            <!-- Air Temp -->
+            <div class="form-group">
+
+                <label>
+                    <i class="fas fa-thermometer-half"></i>
+                    Air Temp
+                </label>
+
+                <input
+                    type="number"
+                    name="air_temperature"
+                    value="300"
+                    step="0.1"
+                    required>
+
+            </div>
+
+            <!-- Process Temp -->
+            <div class="form-group">
+
+                <label>
+                    <i class="fas fa-thermometer-three-quarters"></i>
+                    Process Temp
+                </label>
+
+                <input
+                    type="number"
+                    name="process_temperature"
+                    value="300"
+                    step="0.1"
+                    required>
+
+            </div>
+
+            <!-- Rotational Speed -->
+            <div class="form-group">
+
+                <label>
+                    <i class="fas fa-sync-alt"></i>
+                    Rotational Speed
+                </label>
+
+                <input
+                    type="number"
+                    name="rotational_speed"
+                    value="1400"
+                    required>
+
+            </div>
+
+            <!-- Torque -->
+            <div class="form-group">
+
+                <label>
+                    <i class="fas fa-bolt"></i>
+                    Torque
+                </label>
+
+                <input
+                    type="number"
+                    name="torque"
+                    value="40"
+                    step="0.1"
+                    required>
+
+            </div>
+
+            <!-- Tool Wear -->
+            <div class="form-group">
+
+                <label>
+                    <i class="fas fa-wrench"></i>
+                    Tool Wear Accumulation
+                </label>
+
+                <input
+                    type="number"
+                    name="tool_wear"
+                    value="40"
+                    required>
+
+            </div>
+
+            <button type="submit" class="btn-predict">
+                <i class="fas fa-microchip"></i>
+                Run Diagnostics
+            </button>
+
+        </form>
+
+        <!-- Prediction appears here -->
+        <div id="prediction-result" style="margin-top:30px;">
+
+            {% if result %}
+
+            <hr>
+
+            <h2>Prediction Result</h2>
+
+            <p><strong>Health Status:</strong> {{ result["Health Status"] }}</p>
+
+            <p><strong>Prediction:</strong> {{ result["Prediction Label"] }}</p>
+
+            <p><strong>Confidence:</strong> {{ result["Confidence"] }}</p>
+
+            <p><strong>Failure Probability:</strong> {{ result["Failure Probability"] }}</p>
+
+            <p><strong>Healthy Probability:</strong> {{ result["Healthy Probability"] }}</p>
+
+            <p><strong>Model Used:</strong> {{ model_used }}</p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
