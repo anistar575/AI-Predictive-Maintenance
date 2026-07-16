@@ -20,3 +20,11 @@ __pycache__/
 # Operating System Files
 .DS_Store
 Thumbs.db
+venv/
+__pycache__/
+*.pyc
+
+database/predictions.db
+*.db
+
+.env
