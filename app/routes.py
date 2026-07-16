@@ -1,3 +1,8 @@
+from database.database import (
+    save_prediction,
+    get_all_predictions,
+    get_dashboard_stats
+)
 from flask import Blueprint, render_template, request, jsonify
 
 from ml.predict import PredictiveMaintenancePredictor
@@ -9,7 +14,15 @@ predictor = PredictiveMaintenancePredictor()
 
 @main.route("/")
 def home():
-    return render_template("index.html")
+
+    stats = get_dashboard_stats()
+    predictions = get_all_predictions()
+
+    return render_template(
+        "index.html",
+        stats=stats,
+        predictions=predictions[:5]
+    )
 
 
 @main.route("/predict", methods=["POST"])
@@ -24,9 +37,36 @@ def predict():
             "Tool wear [min]": float(request.form["tool_wear"]),
         }
 
-        result = predictor.predict(data)
+        prediction = predictor.predict(data)
 
-        return jsonify(result)
+        result = prediction["Results"][0]
+
+        save_prediction(
+            machine_type=data["Type"],
+            air_temperature=float(data["Air temperature [K]"]),
+            process_temperature=float(data["Process temperature [K]"]),
+            rotational_speed=int(data["Rotational speed [rpm]"]),
+            torque=float(data["Torque [Nm]"]),
+            tool_wear=int(data["Tool wear [min]"]),
+            prediction="Failure" if result["Prediction"] == 1 else "Healthy",
+            health_status=result["Health Status"],
+            failure_probability=result["Failure Probability"],
+            confidence=result["Confidence"],
+            model_used=prediction["Model Used"],
+        )
+
+        return jsonify(prediction)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@main.route("/history")
+def history():
+
+    predictions = get_all_predictions()
+
+    return render_template(
+        "history.html",
+        predictions=predictions
+    )

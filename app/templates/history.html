@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Prediction History</title>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            margin:40px;
+            background:#f4f4f4;
+        }
+
+        h1{
+            text-align:center;
+        }
+
+        table{
+
+            width:100%;
+            border-collapse:collapse;
+            background:white;
+
+        }
+
+        th,td{
+
+            border:1px solid #ddd;
+            padding:10px;
+            text-align:center;
+
+        }
+
+        th{
+
+            background:#2c3e50;
+            color:white;
+
+        }
+
+        tr:nth-child(even){
+
+            background:#f9f9f9;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1>Prediction History</h1>
+
+<table>
+
+<tr>
+
+<th>ID</th>
+<th>Machine</th>
+<th>Status</th>
+<th>Failure Probability</th>
+<th>Confidence</th>
+<th>Time</th>
+
+</tr>
+
+{% for row in predictions %}
+
+<tr>
+
+<td>{{ row[0] }}</td>
+
+<td>{{ row[1] }}</td>
+
+<td>{{ row[8] }}</td>
+
+<td>{{ row[9] }}</td>
+
+<td>{{ row[10] }}</td>
+
+<td>{{ row[12] }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+
+</html>

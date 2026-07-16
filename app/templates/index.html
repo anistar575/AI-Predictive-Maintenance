@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Predictive Maintenance System</title>
+    <title>INDHAN AI</title>
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Font Awesome -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- CSS -->
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -16,150 +22,531 @@
 
 <div class="container">
 
-    <h1 class="main-title">
-        AI Predictive Maintenance System
-    </h1>
+    <nav class="navbar">
 
-    <div class="card">
+    <div class="logo">
 
-        <h2>Equipment Diagnostics Input</h2>
+        <i class="fas fa-industry"></i>
 
-        <form id="prediction-form" action="/predict" method="POST">
+        <div>
 
-            <!-- Machine Type -->
-            <div class="form-group">
+            <h2>INDHAN AI</h2>
 
-                <label>
-                    <i class="fas fa-cogs"></i>
-                    Machine Variant Type
-                </label>
-
-                <select name="Type" required>
-                    <option value="L">Low Quality (Variant L) - 50% of Fleet</option>
-                    <option value="M">Medium Quality (Variant M) - 30% of Fleet</option>
-                    <option value="H" selected>High Quality (Variant H) - 20% of Fleet</option>
-                </select>
-
-            </div>
-
-            <!-- Air Temp -->
-            <div class="form-group">
-
-                <label>
-                    <i class="fas fa-thermometer-half"></i>
-                    Air Temp
-                </label>
-
-                <input
-                    type="number"
-                    name="air_temperature"
-                    value="300"
-                    step="0.1"
-                    required>
-
-            </div>
-
-            <!-- Process Temp -->
-            <div class="form-group">
-
-                <label>
-                    <i class="fas fa-thermometer-three-quarters"></i>
-                    Process Temp
-                </label>
-
-                <input
-                    type="number"
-                    name="process_temperature"
-                    value="300"
-                    step="0.1"
-                    required>
-
-            </div>
-
-            <!-- Rotational Speed -->
-            <div class="form-group">
-
-                <label>
-                    <i class="fas fa-sync-alt"></i>
-                    Rotational Speed
-                </label>
-
-                <input
-                    type="number"
-                    name="rotational_speed"
-                    value="1400"
-                    required>
-
-            </div>
-
-            <!-- Torque -->
-            <div class="form-group">
-
-                <label>
-                    <i class="fas fa-bolt"></i>
-                    Torque
-                </label>
-
-                <input
-                    type="number"
-                    name="torque"
-                    value="40"
-                    step="0.1"
-                    required>
-
-            </div>
-
-            <!-- Tool Wear -->
-            <div class="form-group">
-
-                <label>
-                    <i class="fas fa-wrench"></i>
-                    Tool Wear Accumulation
-                </label>
-
-                <input
-                    type="number"
-                    name="tool_wear"
-                    value="40"
-                    required>
-
-            </div>
-
-            <button type="submit" class="btn-predict">
-                <i class="fas fa-microchip"></i>
-                Run Diagnostics
-            </button>
-
-        </form>
-
-        <!-- Prediction appears here -->
-        <div id="prediction-result" style="margin-top:30px;">
-
-            {% if result %}
-
-            <hr>
-
-            <h2>Prediction Result</h2>
-
-            <p><strong>Health Status:</strong> {{ result["Health Status"] }}</p>
-
-            <p><strong>Prediction:</strong> {{ result["Prediction Label"] }}</p>
-
-            <p><strong>Confidence:</strong> {{ result["Confidence"] }}</p>
-
-            <p><strong>Failure Probability:</strong> {{ result["Failure Probability"] }}</p>
-
-            <p><strong>Healthy Probability:</strong> {{ result["Healthy Probability"] }}</p>
-
-            <p><strong>Model Used:</strong> {{ model_used }}</p>
-
-            {% endif %}
+            <span>Industrial Predictive Maintenance</span>
 
         </div>
 
     </div>
 
+    <ul class="nav-links">
+
+        <li><a href="/">Dashboard</a></li>
+
+        <li><a href="/history">History</a></li>
+
+    </ul>
+
+</nav>
+
+<div class="hero">
+
+    <h1>AI Predictive Maintenance Dashboard</h1>
+
+    <p>
+        Real-time machine health monitoring using Machine Learning,
+        predictive analytics and industrial sensor data.
+    </p>
+
+</div>
+
+    <!-- ===================== -->
+    <!-- Statistics -->
+    <!-- ===================== -->
+
+    <div class="stats-container">
+
+        <div class="stat-card">
+            <h3>Total Predictions</h3>
+            <h1>{{ stats.total }}</h1>
+        </div>
+
+        <div class="stat-card healthy">
+            <h3>Healthy</h3>
+            <h1>{{ stats.healthy }}</h1>
+        </div>
+
+        <div class="stat-card warning">
+            <h3>Warning</h3>
+            <h1>{{ stats.warning }}</h1>
+        </div>
+
+        <div class="stat-card critical">
+            <h3>Critical</h3>
+            <h1>{{ stats.critical }}</h1>
+        </div>
+
+    </div>
+
+    <!-- ===================== -->
+    <!-- Health Chart -->
+    <!-- ===================== -->
+
+    <div class="chart-card">
+
+        <h2>
+            <i class="fas fa-chart-pie"></i>
+            Machine Health Distribution
+        </h2>
+
+        <canvas id="healthChart"></canvas>
+
+    </div>
+
+    <div class="dashboard">
+
+        <!-- ===================== -->
+        <!-- Input Form -->
+        <!-- ===================== -->
+
+        <div class="input-card">
+
+            <h2>Equipment Diagnostics Input</h2>
+
+            <form id="prediction-form">
+
+                <div class="form-group">
+
+                    <label>
+                        <i class="fas fa-cogs"></i>
+                        Machine Variant Type
+                    </label>
+
+                    <select name="Type" required>
+
+                        <option value="L">
+                            Low Quality (Variant L) - 50% of Fleet
+                        </option>
+
+                        <option value="M">
+                            Medium Quality (Variant M) - 30% of Fleet
+                        </option>
+
+                        <option value="H" selected>
+                            High Quality (Variant H) - 20% of Fleet
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+                        <i class="fas fa-thermometer-half"></i>
+                        Air Temperature
+                    </label>
+
+                    <input
+                        type="number"
+                        name="air_temperature"
+                        value="300"
+                        step="0.1"
+                        required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+                        <i class="fas fa-thermometer-three-quarters"></i>
+                        Process Temperature
+                    </label>
+
+                    <input
+                        type="number"
+                        name="process_temperature"
+                        value="300"
+                        step="0.1"
+                        required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+                        <i class="fas fa-sync-alt"></i>
+                        Rotational Speed
+                    </label>
+
+                    <input
+                        type="number"
+                        name="rotational_speed"
+                        value="1400"
+                        required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+                        <i class="fas fa-bolt"></i>
+                        Torque
+                    </label>
+
+                    <input
+                        type="number"
+                        name="torque"
+                        value="40"
+                        step="0.1"
+                        required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+                        <i class="fas fa-wrench"></i>
+                        Tool Wear
+                    </label>
+
+                    <input
+                        type="number"
+                        name="tool_wear"
+                        value="40"
+                        required>
+
+                </div>
+
+                <button type="submit" class="btn-predict">
+
+                    <i class="fas fa-microchip"></i>
+
+                    Run Diagnostics
+
+                </button>
+
+            </form>
+
+        </div>
+
+        <!-- ===================== -->
+        <!-- Prediction Result -->
+        <!-- ===================== -->
+
+<div class="result-card">
+
+    <div class="status-icon" id="status-icon">
+        <i class="fas fa-heartbeat"></i>
+    </div>
+
+    <h2 id="health-status">No Prediction Yet</h2>
+
+    <p class="status-subtitle" id="prediction-label">
+        Enter machine parameters and click Predict.
+    </p>
+
+    <div class="metric">
+
+        <span>Failure Probability</span>
+
+        <strong id="failure-probability">--</strong>
+
+        <div class="progress">
+
+            <div id="failure-bar" class="progress-fill"></div>
+
+        </div>
+
+    </div>
+
+    <div class="metric">
+
+        <span>Confidence</span>
+
+        <strong id="confidence">--</strong>
+
+        <div class="progress">
+
+            <div id="confidence-bar" class="progress-fill blue"></div>
+
+        </div>
+
+    </div>
+
+    <div class="details">
+
+        <p>
+            <strong>Model:</strong>
+            <span id="model-used">--</span>
+        </p>
+
+        <p>
+            <strong>Prediction Time:</strong>
+            <span id="prediction-time">--</span>
+        </p>
+
+    </div>
+
+</div>
+
+    <!-- ===================== -->
+    <!-- Prediction History -->
+    <!-- ===================== -->
+
+    <div class="history-card">
+
+        <h2>
+
+            <i class="fas fa-history"></i>
+
+            Recent Predictions
+
+        </h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>Machine</th>
+
+                    <th>Status</th>
+
+                    <th>Failure %</th>
+
+                    <th>Time</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for row in predictions %}
+
+                <tr>
+
+                    <td>{{ row[0] }}</td>
+
+                    <td>{{ row[1] }}</td>
+
+                    <td>{{ row[8] }}</td>
+
+                    <td>{{ (row[9] * 100)|round(2) }}%</td>
+
+                    <td>{{ row[12] }}</td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+    <script>
+
+// ==============================
+// Dashboard Statistics
+// ==============================
+
+const dashboardStats = {
+    total: Number("{{ stats.total }}"),
+    healthy: Number("{{ stats.healthy }}"),
+    warning: Number("{{ stats.warning }}"),
+    critical: Number("{{ stats.critical }}")
+};
+
+
+// ==============================
+// Doughnut Chart
+// ==============================
+
+const ctx = document.getElementById("healthChart").getContext("2d");
+
+const healthChart = new Chart(ctx, {
+
+    type: "doughnut",
+
+    data: {
+
+        labels: [
+            "Healthy",
+            "Warning",
+            "Critical"
+        ],
+
+        datasets: [{
+
+            data: [
+                dashboardStats.healthy,
+                dashboardStats.warning,
+                dashboardStats.critical
+            ],
+
+            backgroundColor: [
+                "#22c55e",
+                "#f59e0b",
+                "#ef4444"
+            ],
+
+            borderColor: "#1f2937",
+
+            borderWidth: 2
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        maintainAspectRatio: false,
+
+        plugins: {
+
+            legend: {
+
+                position: "bottom",
+
+                labels: {
+
+                    color: "#ffffff"
+
+                }
+
+            }
+
+        }
+
+    }
+
+});
+
+
+// ==============================
+// Prediction Form
+// ==============================
+
+const form = document.getElementById("prediction-form");
+
+form.addEventListener("submit", async function (e) {
+
+    e.preventDefault();
+
+    const button = document.querySelector(".btn-predict");
+
+    button.disabled = true;
+
+    button.innerHTML = `
+        <i class="fas fa-spinner fa-spin"></i>
+        Running Diagnostics...
+    `;
+
+    try {
+
+        const response = await fetch("/predict", {
+
+            method: "POST",
+
+            body: new FormData(form)
+
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(data.error || "Prediction failed.");
+
+        }
+
+        const result = data.Results[0];
+
+// Update Result Card
+document.getElementById("health-status").innerText =
+    result["Health Status"];
+
+document.getElementById("prediction-label").innerText =
+    result["Prediction Label"];
+
+document.getElementById("failure-probability").innerText =
+    (result["Failure Probability"] * 100).toFixed(2) + "%";
+
+document.getElementById("confidence").innerText =
+    result["Confidence"];
+
+document.getElementById("model-used").innerText =
+    data["Model Used"];
+
+document.getElementById("prediction-time").innerText =
+    new Date().toLocaleString();
+
+// Progress Bars
+document.getElementById("failure-bar").style.width =
+    (result["Failure Probability"] * 100) + "%";
+
+document.getElementById("confidence-bar").style.width =
+    parseFloat(result["Confidence"]) + "%";
+
+// Status Icon
+const icon = document.getElementById("status-icon");
+
+icon.className = "status-icon";
+
+if (result["Prediction Label"] === "Healthy") {
+
+    icon.innerHTML =
+        '<i class="fas fa-check-circle"></i>';
+
+} else {
+
+    icon.classList.add("danger");
+
+    icon.innerHTML =
+        '<i class="fas fa-exclamation-triangle"></i>';
+}
+
+        // Reload after 2 seconds so
+        // dashboard cards, chart and history refresh
+
+        setTimeout(() => {
+
+            location.reload();
+
+        }, 2000);
+
+    }
+
+    catch (err) {
+
+        alert(err.message);
+
+    }
+
+    finally {
+
+        button.disabled = false;
+
+        button.innerHTML = `
+            <i class="fas fa-microchip"></i>
+            Run Diagnostics
+        `;
+
+    }
+
+});
+
+</script>
+
+
 </div>
 
 </body>
 </html>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
