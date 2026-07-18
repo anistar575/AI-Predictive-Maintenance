@@ -1,7 +1,8 @@
 from flask import redirect
 from database.database import (
     add_machine,
-    get_all_machines
+    get_all_machines,
+    delete_machine,
 )
 from database.database import (
     save_prediction,
@@ -102,5 +103,11 @@ def add_machine_route():
         installation_date=request.form["installation_date"]
 
     )
+
+    return redirect("/machines")
+@main.route("/delete-machine/<int:id>")
+def delete_machine_route(id):
+
+    delete_machine(id)
 
     return redirect("/machines")

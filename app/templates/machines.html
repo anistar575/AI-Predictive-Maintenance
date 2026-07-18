@@ -26,7 +26,6 @@
         <i class="fas fa-industry"></i>
         Machine Management
     </h1>
-
     <div class="main-grid">
 
         <!-- Left Card -->
@@ -122,61 +121,83 @@
 
         <div class="card">
 
-            <h2>
+        <h2>
 
-                <i class="fas fa-list"></i>
+    <i class="fas fa-list"></i>
 
-                Registered Machines
+    Registered Machines
 
-            </h2>
+</h2>
 
-            <table>
+<div class="toolbar">
 
-                <thead>
+    <input
+        type="text"
+        id="machineSearch"
+        placeholder="Search Machine...">
 
-                <tr>
+</div>
 
-                    <th>Code</th>
+<table>
 
-                    <th>Name</th>
+    <thead>
 
-                    <th>Department</th>
+        <tr>
 
-                    <th>Status</th>
+            <th>Code</th>
 
-                </tr>
+            <th>Name</th>
 
-                </thead>
+            <th>Department</th>
 
-                <tbody>
+            <th>Status</th>
 
-                {% for machine in machines %}
+            <th>Actions</th>
 
-                <tr>
+        </tr>
 
-                    <td>{{ machine[1] }}</td>
+    </thead>
 
-                    <td>{{ machine[2] }}</td>
+    <tbody>
 
-                    <td>{{ machine[4] }}</td>
+        {% for machine in machines %}
 
-                    <td>
+        <tr class="machine-row">
 
-                        <span class="healthy">
+            <td>{{ machine[1] }}</td>
 
-                            {{ machine[7] }}
+            <td>{{ machine[2] }}</td>
 
-                        </span>
+            <td>{{ machine[4] }}</td>
 
-                    </td>
+            <td>
 
-                </tr>
+                <span class="healthy">
 
-                {% endfor %}
+                    {{ machine[7] }}
 
-                </tbody>
+                </span>
 
-            </table>
+            </td>
+
+            <td>
+
+                <a href="/delete-machine/{{ machine[0] }}"
+                   class="delete-btn">
+
+                    <i class="fas fa-trash"></i>
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
 
         </div>
 
@@ -187,3 +208,4 @@
 </body>
 
 </html>
+<script src="{{ url_for('static', filename='js/machines.js') }}"></script>

@@ -134,3 +134,37 @@ tbody tr:hover{
 }
 
 }
+.toolbar{
+
+    margin-bottom:20px;
+
+}
+
+#machineSearch{
+
+    width:350px;
+
+    padding:12px 15px;
+
+    border-radius:8px;
+
+    border:1px solid #d1d5db;
+
+    font-size:16px;
+
+}
+.delete-btn{
+
+    color:#ef4444;
+
+    text-decoration:none;
+
+    font-size:18px;
+
+}
+
+.delete-btn:hover{
+
+    color:#b91c1c;
+
+}

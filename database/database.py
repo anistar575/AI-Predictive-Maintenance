@@ -281,11 +281,45 @@ def get_dashboard_stats():
         "warning": warning,
         "critical": critical,
     }
+def delete_machine(machine_id):
+
+    conn = get_connection()
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+
+        DELETE FROM machines
+
+        WHERE id=?
+
+    """,(machine_id,))
+
+    conn.commit()
+
+    conn.close()
+    def delete_machine(machine_id):
+        conn = get_connection()
+
+        cursor = conn.cursor()
+
+    cursor.execute("""
+
+        DELETE FROM machines
+
+        WHERE id = ?
+
+    """, (machine_id,))
+
+    conn.commit()
+
+    conn.close()
 def initialize_database():
 
     create_table()
 
     create_machine_table()
+    
 
 if __name__ == "__main__":
     initialize_database()
