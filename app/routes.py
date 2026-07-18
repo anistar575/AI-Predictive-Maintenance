@@ -1,3 +1,8 @@
+from flask import redirect
+from database.database import (
+    add_machine,
+    get_all_machines
+)
 from database.database import (
     save_prediction,
     get_all_predictions,
@@ -70,3 +75,32 @@ def history():
         "history.html",
         predictions=predictions
     )
+@main.route("/machines")
+def machines():
+
+    machines = get_all_machines()
+
+    return render_template(
+        "machines.html",
+        machines=machines
+    )
+@main.route("/add-machine", methods=["POST"])
+def add_machine_route():
+
+    add_machine(
+
+        machine_code=request.form["machine_code"],
+
+        machine_name=request.form["machine_name"],
+
+        machine_type=request.form["machine_type"],
+
+        department=request.form["department"],
+
+        location=request.form["location"],
+
+        installation_date=request.form["installation_date"]
+
+    )
+
+    return redirect("/machines")

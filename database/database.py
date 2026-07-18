@@ -2,6 +2,110 @@ import sqlite3
 from pathlib import Path
 
 DB_PATH = Path("database/predictions.db")
+def add_machine(
+    machine_code,
+    machine_name,
+    machine_type,
+    department,
+    location,
+    installation_date
+):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute("""
+
+            INSERT INTO machines(
+
+                machine_code,
+                machine_name,
+                machine_type,
+                department,
+                location,
+                installation_date
+
+            )
+
+            VALUES(?,?,?,?,?,?)
+
+        """, (
+
+            machine_code,
+            machine_name,
+            machine_type,
+            department,
+            location,
+            installation_date
+
+        ))
+
+        conn.commit()
+
+        return True
+
+    except sqlite3.IntegrityError:
+
+        return False
+
+    finally:
+
+        conn.close()
+def get_all_machines():
+
+    conn=get_connection()
+
+    cursor=conn.cursor()
+
+    cursor.execute("""
+
+        SELECT *
+
+        FROM machines
+
+        ORDER BY id DESC
+
+    """)
+
+    data=cursor.fetchall()
+
+    conn.close()
+
+    return data
+def create_machine_table():
+
+    conn = get_connection()
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+CREATE TABLE IF NOT EXISTS machines (
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    machine_code TEXT UNIQUE NOT NULL,
+
+    machine_name TEXT NOT NULL,
+
+    machine_type TEXT NOT NULL,
+
+    department TEXT NOT NULL,
+
+    location TEXT NOT NULL,
+
+    installation_date TEXT,
+
+    current_status TEXT DEFAULT 'Healthy',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+)
+""")
+
+    conn.commit()
+    conn.close()
 
 
 def get_connection():
@@ -177,8 +281,12 @@ def get_dashboard_stats():
         "warning": warning,
         "critical": critical,
     }
+def initialize_database():
 
+    create_table()
+
+    create_machine_table()
 
 if __name__ == "__main__":
-    create_table()
+    initialize_database()
     print("Database created successfully.")

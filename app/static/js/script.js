@@ -153,3 +153,43 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+const searchInput = document.getElementById("historySearch");
+
+searchInput.addEventListener("keyup", function(){
+
+    const value = this.value.toLowerCase();
+
+    document.querySelectorAll(".history-row").forEach(row=>{
+
+        row.style.display =
+            row.innerText.toLowerCase().includes(value)
+            ? ""
+            : "none";
+
+    });
+
+});
+const filter=document.getElementById("statusFilter");
+
+filter.addEventListener("change",function(){
+
+    const value=this.value;
+
+    document.querySelectorAll(".history-row").forEach(row=>{
+
+        if(value==="all"){
+
+            row.style.display="";
+
+            return;
+
+        }
+
+        row.style.display =
+            row.innerText.includes(value)
+            ? ""
+            : "none";
+
+    });
+
+});

@@ -297,17 +297,35 @@
 
         <h2>
 
-            <i class="fas fa-history"></i>
+    <i class="fas fa-history"></i>
 
-            Recent Predictions
+    Recent Predictions
 
-        </h2>
+</h2>
 
-        <table>
+<div class="history-toolbar">
+
+    <input
+        type="text"
+        id="historySearch"
+        placeholder="Search Machine ID or Type...">
+
+    <select id="statusFilter">
+
+        <option value="all">All Status</option>
+        <option value="Healthy">Healthy</option>
+        <option value="Warning">Warning</option>
+        <option value="Critical">Critical</option>
+
+    </select>
+
+</div>
+
+<table>
 
             <thead>
 
-                <tr>
+                <tr class="history-row">
 
                     <th>ID</th>
 
@@ -327,7 +345,7 @@
 
                 {% for row in predictions %}
 
-                <tr>
+                <tr class="history-row">
 
                     <td>{{ row[0] }}</td>
 

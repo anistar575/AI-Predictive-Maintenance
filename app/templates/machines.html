@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Machine Management</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/machines.css') }}">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1 class="page-title">
+        <i class="fas fa-industry"></i>
+        Machine Management
+    </h1>
+
+    <div class="main-grid">
+
+        <!-- Left Card -->
+
+        <div class="card">
+
+            <h2>
+                <i class="fas fa-plus-circle"></i>
+                Register Machine
+            </h2>
+
+            <form method="POST"
+      action="/add-machine">
+
+                <div class="form-group">
+
+                    <label>Machine Code</label>
+
+                    <input type="text"
+                        name="machine_code"
+                        placeholder="MC001"
+                        required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Machine Name</label>
+
+                    <input type="text"
+       name="machine_name"
+       placeholder="Hydraulic Press"
+       required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Department</label>
+
+                    <input type="text"
+       name="department"
+       required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Location</label>
+
+                    <input type="text"
+       name="location"
+       required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Machine Type</label>
+
+                    <select name="machine_type">
+
+    <option value="H">High (H)</option>
+    <option value="M">Medium (M)</option>
+    <option value="L">Low (L)</option>
+
+</select>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Installation Date</label>
+
+                    <input type="date"
+       name="installation_date">
+
+                </div>
+
+                <button class="btn-save">
+
+                    <i class="fas fa-save"></i>
+
+                    Register Machine
+
+                </button>
+
+            </form>
+
+        </div>
+
+        <!-- Right Card -->
+
+        <div class="card">
+
+            <h2>
+
+                <i class="fas fa-list"></i>
+
+                Registered Machines
+
+            </h2>
+
+            <table>
+
+                <thead>
+
+                <tr>
+
+                    <th>Code</th>
+
+                    <th>Name</th>
+
+                    <th>Department</th>
+
+                    <th>Status</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for machine in machines %}
+
+                <tr>
+
+                    <td>{{ machine[1] }}</td>
+
+                    <td>{{ machine[2] }}</td>
+
+                    <td>{{ machine[4] }}</td>
+
+                    <td>
+
+                        <span class="healthy">
+
+                            {{ machine[7] }}
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>
