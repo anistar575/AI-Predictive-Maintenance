@@ -1,3 +1,5 @@
+
+import traceback
 from flask import redirect
 from database.database import (
     save_prediction,
@@ -6,11 +8,7 @@ from database.database import (
     get_all_machines,
     delete_machine,
     get_machine,
-    update_machine_status
-)
-from database.database import (
-    save_prediction,
-    get_all_predictions,
+    update_machine_status,
     get_dashboard_stats
 )
 from flask import Blueprint, render_template, request, jsonify
@@ -27,11 +25,13 @@ def home():
 
     stats = get_dashboard_stats()
     predictions = get_all_predictions()
+    machines = get_all_machines()
 
     return render_template(
         "index.html",
         stats=stats,
-        predictions=predictions[:5]
+        predictions=predictions[:5],
+        machines=machines
     )
 
 
@@ -40,6 +40,7 @@ def predict():
     try:
 
         machine = get_machine(request.form["machine_code"])
+        print("Selected Machine:", repr(machine).encode('ascii', 'backslashreplace').decode('ascii'))
 
         data = {
             "Type": machine[3],   # Machine Type (H/M/L)
@@ -79,7 +80,10 @@ def predict():
 
         return jsonify(prediction)
 
+        
+
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 400
 
 

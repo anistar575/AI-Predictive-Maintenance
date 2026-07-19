@@ -74,6 +74,30 @@ def get_all_machines():
     conn.close()
 
     return data
+def update_machine_status(machine_code, status):
+
+    conn = get_connection()
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+
+        UPDATE machines
+
+        SET current_status = ?
+
+        WHERE machine_code = ?
+
+    """, (
+
+        status,
+        machine_code
+
+    ))
+
+    conn.commit()
+
+    conn.close()
 def create_machine_table():
 
     conn = get_connection()
@@ -159,9 +183,11 @@ CREATE TABLE IF NOT EXISTS prediction_history(
 
     conn.commit()
     conn.close()
+    create_machine_table()
 
 
 def save_prediction(
+    
     machine_code,
     machine_type,
     air_temperature,
@@ -199,9 +225,10 @@ def save_prediction(
             model_used
 
         )
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
     """, (
 
+        machine_code,
         machine_type,
         air_temperature,
         process_temperature,
@@ -265,7 +292,7 @@ def get_dashboard_stats():
     cursor.execute("""
         SELECT COUNT(*)
         FROM prediction_history
-        WHERE health_status LIKE '%Moderate%'
+        WHERE health_status LIKE '%Warning%'
     """)
     warning = cursor.fetchone()[0]
 
@@ -273,7 +300,7 @@ def get_dashboard_stats():
     cursor.execute("""
         SELECT COUNT(*)
         FROM prediction_history
-        WHERE health_status LIKE '%High%'
+        WHERE health_status LIKE '%Critical%'
     """)
     critical = cursor.fetchone()[0]
 
@@ -298,41 +325,6 @@ def delete_machine(machine_id):
         WHERE id=?
 
     """,(machine_id,))
-
-    conn.commit()
-
-    conn.close()
-    def delete_machine(machine_id):
-        conn = get_connection()
-
-        cursor = conn.cursor()
-
-    cursor.execute("""
-
-        DELETE FROM machines
-
-        WHERE id = ?
-
-    """, (machine_id,))
-
-    conn.commit()
-
-    conn.close()
-def update_machine_status(machine_code, status):
-
-    conn = get_connection()
-
-    cursor = conn.cursor()
-
-    cursor.execute("""
-
-        UPDATE machines
-
-        SET current_status = ?
-
-        WHERE machine_code = ?
-
-    """, (status, machine_code))
 
     conn.commit()
 
