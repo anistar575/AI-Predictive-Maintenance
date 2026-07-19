@@ -1,6 +1,7 @@
 
 import traceback
-from flask import redirect
+from functools import wraps
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session, abort, g
 from database.database import (
     save_prediction,
     get_all_predictions,
@@ -14,15 +15,36 @@ from database.database import (
     update_machine,
     get_predictions_by_machine,
     get_predictions_with_machine_details,
-    get_all_departments
+    get_all_departments,
+    add_maintenance_schedule,
+    get_maintenance_schedules,
+    complete_maintenance_schedule,
+    delete_maintenance_schedule,
+    get_user_by_username
 )
-from flask import Blueprint, render_template, request, jsonify
 
 from ml.predict import PredictiveMaintenancePredictor
 
 main = Blueprint("main", __name__)
 
 predictor = PredictiveMaintenancePredictor()
+
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("role") != "Admin":
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@main.before_request
+def check_login():
+    if request.endpoint == "main.login_route" or (request.path and request.path.startswith("/static")):
+        return
+    if "user_id" not in session:
+        return redirect(url_for("main.login_route"))
 
 
 @main.route("/")
@@ -111,6 +133,7 @@ def machines():
         machines=machines
     )
 @main.route("/add-machine", methods=["POST"])
+@admin_required
 def add_machine_route():
 
     add_machine(
@@ -131,6 +154,7 @@ def add_machine_route():
 
     return redirect("/machines")
 @main.route("/delete-machine/<int:id>")
+@admin_required
 def delete_machine_route(id):
 
     delete_machine(id)
@@ -139,6 +163,7 @@ def delete_machine_route(id):
 
 
 @main.route("/edit-machine/<int:id>", methods=["GET", "POST"])
+@admin_required
 def edit_machine_route(id):
     machine = get_machine_by_id(id)
     if not machine:
@@ -182,12 +207,65 @@ def machine_details_route(machine_code):
     predictions = get_predictions_by_machine(machine_code)
     latest_prediction = predictions[0] if predictions else None
 
+    # Generate rule-based maintenance recommendation
+    recommendation = {
+        "status": "info",
+        "title": "No Telemetry Data Available",
+        "action": "Run equipment diagnostics from the dashboard to collect telemetry data."
+    }
+
+    if latest_prediction:
+        failure_prob = latest_prediction[9]
+        tool_wear = latest_prediction[6]
+        torque = latest_prediction[5]
+        air_temp = latest_prediction[2]
+        proc_temp = latest_prediction[3]
+        temp_diff = proc_temp - air_temp
+
+        if failure_prob > 0.70:
+            recommendation = {
+                "status": "critical",
+                "title": "URGENT INSPECTION REQUIRED",
+                "action": "The ML model predicts a critical failure risk. Immediately halt machine operation. Inspect tool cutters for wear/breakage, examine mechanical bearings, and check electrical load parameters for torque spikes."
+            }
+        elif failure_prob > 0.30:
+            recommendation = {
+                "status": "warning",
+                "title": "PLAN PREVENTATIVE MAINTENANCE",
+                "action": "A warning risk level has been identified. Schedule maintenance within the next 24 operating hours."
+            }
+            if tool_wear > 180:
+                recommendation["action"] += " High tool wear detected; plan cutter bit replacement."
+            if temp_diff > 8.5:
+                recommendation["action"] += " High process temperature difference detected; check cooling fans and heat sink dissipation."
+        else:
+            recommendation = {
+                "status": "healthy",
+                "title": "HEALTH STATUS OPTIMAL",
+                "action": "Machine is running within normal limits. Continue standard operating logs. Next routine check recommended on schedule."
+            }
+            if tool_wear > 150:
+                recommendation["action"] = "Machine health is overall optimal, but Tool Wear is reaching preventative limits. Plan tool replacement during the next shift change."
+
+    # Serialize chronological prediction log for Chart.js (oldest first)
+    import json
+    chronological_predictions = []
+    for row in reversed(predictions):
+        chronological_predictions.append({
+            "date": str(row[12])[:16], # YYYY-MM-DD HH:MM
+            "failure_prob": row[9],
+            "tool_wear": row[6],
+            "status": row[8]
+        })
+    chronological_json = json.dumps(chronological_predictions)
 
     return render_template(
         "machine_details.html",
         machine=machine,
         predictions=predictions,
-        latest_prediction=latest_prediction
+        latest_prediction=latest_prediction,
+        recommendation=recommendation,
+        chronological_json=chronological_json
     )
 
 
@@ -229,3 +307,78 @@ def analytics_route():
         machines=machines,
         departments=departments
     )
+
+
+@main.route("/maintenance")
+def maintenance_route():
+    schedules = get_maintenance_schedules()
+    machines = get_all_machines()
+    
+    # Split schedules into pending and completed:
+    pending = [s for s in schedules if s[5] == 0]
+    completed = [s for s in schedules if s[5] == 1]
+    
+    return render_template(
+        "maintenance.html",
+        pending=pending,
+        completed=completed,
+        machines=machines
+    )
+
+
+@main.route("/maintenance/add", methods=["POST"])
+@admin_required
+def add_maintenance_route():
+    machine_code = request.form.get("machine_code")
+    task_name = request.form.get("task_name")
+    scheduled_date = request.form.get("scheduled_date")
+    urgency = request.form.get("urgency")
+    
+    if machine_code and task_name and scheduled_date and urgency:
+        add_maintenance_schedule(machine_code, task_name, scheduled_date, urgency)
+        
+    return redirect("/maintenance")
+
+
+@main.route("/maintenance/complete/<int:schedule_id>", methods=["POST"])
+@admin_required
+def complete_maintenance_route(schedule_id):
+    complete_maintenance_schedule(schedule_id)
+    return redirect("/maintenance")
+
+
+@main.route("/maintenance/delete/<int:schedule_id>", methods=["POST"])
+@admin_required
+def delete_maintenance_route(schedule_id):
+    delete_maintenance_schedule(schedule_id)
+    return redirect("/maintenance")
+
+
+@main.route("/login", methods=["GET", "POST"])
+def login_route():
+    if "user_id" in session:
+        return redirect(url_for("main.home"))
+        
+    error = None
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        
+        user = get_user_by_username(username)
+        if user:
+            from werkzeug.security import check_password_hash
+            if check_password_hash(user[2], password):
+                session["user_id"] = user[0]
+                session["username"] = user[1]
+                session["role"] = user[3]
+                return redirect(url_for("main.home"))
+                
+        error = "Invalid username or password."
+        
+    return render_template("login.html", error=error)
+
+
+@main.route("/logout")
+def logout_route():
+    session.clear()
+    return redirect(url_for("main.login_route"))

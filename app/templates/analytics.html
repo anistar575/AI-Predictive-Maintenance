@@ -218,11 +218,9 @@
                 </a>
             </li>
             
-            <!-- Future Modules Blocked Out for Platform Completeness -->
             <li>
-                <a class="disabled-item">
+                <a href="/maintenance">
                     <i class="fas fa-calendar-alt"></i> Maintenance
-                    <span class="badge-upcoming">Phase 5</span>
                 </a>
             </li>
             <li>
@@ -232,6 +230,22 @@
                 </a>
             </li>
         </ul>
+
+        <!-- User Profile Info at bottom of Sidebar -->
+        <div class="sidebar-user" style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #1f2937; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary-blue); border: 1.5px solid var(--border-color);">
+                    {{ session.get('username')[0]|upper if session.get('username') else 'U' }}
+                </div>
+                <div>
+                    <div style="font-weight: 600; color: #fff;">{{ session.get('username') }}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">{{ session.get('role') }}</div>
+                </div>
+            </div>
+            <a href="/logout" title="Sign Out" style="color: var(--text-secondary); font-size: 16px; transition: color 0.2s ease;">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
     </aside>
 
     <!-- Main Content Area -->

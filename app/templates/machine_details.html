@@ -4,23 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Machine Details - INDHAN AI</title>
+    <title>Machine Profile: {{ machine[2] }} - INDHAN AI</title>
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- CSS -->
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/machines.css') }}">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
-        .details-grid {
+        .profile-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 32px;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
         }
         
-        .info-card, .status-card, .history-log-card {
+        .info-card, .status-card, .history-log-card, .recommendation-card, .timeline-card {
             background: var(--card-bg);
             padding: 32px;
             border-radius: 16px;
@@ -119,8 +131,138 @@
             margin-bottom: 16px;
         }
 
+        /* Recommendation Advisor Card Colors */
+        .recommendation-card {
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        .recommendation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+        .recommendation-card.critical {
+            border-color: rgba(239, 68, 68, 0.4);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.1);
+        }
+        .recommendation-card.critical::before {
+            background: var(--color-critical);
+        }
+        .recommendation-card.warning {
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.1);
+        }
+        .recommendation-card.warning::before {
+            background: var(--color-warning);
+        }
+        .recommendation-card.healthy {
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        .recommendation-card.healthy::before {
+            background: var(--color-healthy);
+        }
+        .recommendation-card.info {
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        .recommendation-card.info::before {
+            background: var(--primary-blue);
+        }
+        .recommendation-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .recommendation-card.critical .recommendation-title { color: var(--color-critical); }
+        .recommendation-card.warning .recommendation-title { color: var(--color-warning); }
+        .recommendation-card.healthy .recommendation-title { color: var(--color-healthy); }
+        .recommendation-card.info .recommendation-title { color: var(--primary-blue); }
+
+        .recommendation-action {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        /* Health Timeline Styles */
+        .timeline-list {
+            position: relative;
+            padding-left: 32px;
+            margin-top: 24px;
+        }
+        .timeline-list::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: #1f2937;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+        .timeline-badge {
+            position: absolute;
+            left: -32px;
+            top: 2px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--bg-main);
+            border: 2px solid #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .timeline-badge.healthy { border-color: var(--color-healthy); }
+        .timeline-badge.warning { border-color: var(--color-warning); }
+        .timeline-badge.critical { border-color: var(--color-critical); }
+
+        .timeline-badge::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .timeline-badge.healthy::after { background: var(--color-healthy); }
+        .timeline-badge.warning::after { background: var(--color-warning); }
+        .timeline-badge.critical::after { background: var(--color-critical); }
+
+        .timeline-content {
+            background: var(--bg-main);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .timeline-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .timeline-desc {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
         @media (max-width: 1080px) {
-            .details-grid {
+            .profile-container {
                 grid-template-columns: 1fr;
             }
         }
@@ -156,16 +298,15 @@
                     <i class="fas fa-history"></i> Diagnostics History
                 </a>
             </li>
-            
             <li>
                 <a href="/analytics">
                     <i class="fas fa-chart-pie"></i> Advanced Analytics
                 </a>
             </li>
+            
             <li>
-                <a class="disabled-item">
+                <a href="/maintenance">
                     <i class="fas fa-calendar-alt"></i> Maintenance
-                    <span class="badge-upcoming">Phase 5</span>
                 </a>
             </li>
             <li>
@@ -175,6 +316,22 @@
                 </a>
             </li>
         </ul>
+
+        <!-- User Profile Info at bottom of Sidebar -->
+        <div class="sidebar-user" style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #1f2937; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary-blue); border: 1.5px solid var(--border-color);">
+                    {{ session.get('username')[0]|upper if session.get('username') else 'U' }}
+                </div>
+                <div>
+                    <div style="font-weight: 600; color: #fff;">{{ session.get('username') }}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">{{ session.get('role') }}</div>
+                </div>
+            </div>
+            <a href="/logout" title="Sign Out" style="color: var(--text-secondary); font-size: 16px; transition: color 0.2s ease;">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
     </aside>
 
     <!-- Main Content Area -->
@@ -182,7 +339,7 @@
         <!-- Content Header -->
         <header class="content-header">
             <div>
-                <h1>Machine Diagnostics File</h1>
+                <h1>Machine Profile</h1>
                 <p style="color: var(--text-secondary); margin-top: 4px; font-size: 14px;">
                     Detailed diagnostic records, telemetry charts, and logs for machine: {{ machine[2] }}.
                 </p>
@@ -203,126 +360,207 @@
                 <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to Registry
             </a>
         </div>
+
+        <!-- Maintenance Recommendation Card -->
+        <div class="recommendation-card {{ recommendation.status }}">
+            <div class="recommendation-title">
+                {% if recommendation.status == 'critical' %}
+                <i class="fas fa-exclamation-triangle pulsing"></i>
+                {% elif recommendation.status == 'warning' %}
+                <i class="fas fa-exclamation-circle"></i>
+                {% elif recommendation.status == 'healthy' %}
+                <i class="fas fa-check-circle"></i>
+                {% else %}
+                <i class="fas fa-info-circle"></i>
+                {% endif %}
+                {{ recommendation.title }}
+            </div>
+            <div class="recommendation-action">
+                {{ recommendation.action }}
+            </div>
+        </div>
         
-        <div style="margin-top: 32px;" class="details-grid">
-            <!-- Card 1: Machine Information -->
-            <div class="info-card">
-                <h2>
-                    <i class="fas fa-info-circle"></i>
-                    Machine Information
-                </h2>
-                <div class="info-grid">
-                    <div class="info-label">Machine Code:</div>
-                    <div class="info-value"><code>{{ machine[1] }}</code></div>
+        <div class="profile-container">
+            <!-- Left Side: Machine Information & Latest Telemetry -->
+            <div style="display: flex; flex-direction: column; gap: 32px;">
+                <div class="info-card">
+                    <h2>
+                        <i class="fas fa-info-circle"></i>
+                        Machine Information
+                    </h2>
+                    <div class="info-grid">
+                        <div class="info-label">Machine Code:</div>
+                        <div class="info-value"><code>{{ machine[1] }}</code></div>
+                        
+                        <div class="info-label">Machine Name:</div>
+                        <div class="info-value">{{ machine[2] }}</div>
+                        
+                        <div class="info-label">Machine Type:</div>
+                        <div class="info-value">
+                            {% if machine[3] == 'H' %}
+                            High (H)
+                            {% elif machine[3] == 'M' %}
+                            Medium (M)
+                            {% else %}
+                            Low (L)
+                            {% endif %}
+                        </div>
+                        
+                        <div class="info-label">Department:</div>
+                        <div class="info-value">{{ machine[4] }}</div>
+                        
+                        <div class="info-label">Location:</div>
+                        <div class="info-value">{{ machine[5] }}</div>
+                        
+                        <div class="info-label">Installation Date:</div>
+                        <div class="info-value">{{ machine[6] if machine[6] else '--' }}</div>
+
+                        <div class="info-label">Registered At:</div>
+                        <div class="info-value">{{ machine[8] }}</div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <h2>
+                        <i class="fas fa-heartbeat"></i>
+                        Latest Diagnostics Data
+                    </h2>
                     
-                    <div class="info-label">Machine Name:</div>
-                    <div class="info-value">{{ machine[2] }}</div>
-                    
-                    <div class="info-label">Machine Type:</div>
-                    <div class="info-value">
-                        {% if machine[3] == 'H' %}
-                        High (H)
-                        {% elif machine[3] == 'M' %}
-                        Medium (M)
+                    <div style="display: flex; align-items: center; gap: 16px; margin: 16px 0;">
+                        <span style="font-size: 15px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Current Status:</span>
+                        {% if 'Healthy' in machine[7] %}
+                        <span class="status-badge healthy" style="font-size: 12px; padding: 6px 16px;">{{ machine[7] }}</span>
+                        {% elif 'Warning' in machine[7] %}
+                        <span class="status-badge warning" style="font-size: 12px; padding: 6px 16px;">{{ machine[7] }}</span>
+                        {% elif 'Critical' in machine[7] %}
+                        <span class="status-badge critical" style="font-size: 12px; padding: 6px 16px;">{{ machine[7] }}</span>
                         {% else %}
-                        Low (L)
+                        <span class="status-badge healthy" style="font-size: 12px; padding: 6px 16px;">{{ machine[7] }}</span>
                         {% endif %}
                     </div>
                     
-                    <div class="info-label">Department:</div>
-                    <div class="info-value">{{ machine[4] }}</div>
-                    
-                    <div class="info-label">Location:</div>
-                    <div class="info-value">{{ machine[5] }}</div>
-                    
-                    <div class="info-label">Installation Date:</div>
-                    <div class="info-value">{{ machine[6] if machine[6] else '--' }}</div>
-
-                    <div class="info-label">Registered At:</div>
-                    <div class="info-value">{{ machine[8] }}</div>
-                </div>
-            </div>
-            
-            <!-- Card 2: Current Status & Latest Diagnostic -->
-            <div class="status-card">
-                <h2>
-                    <i class="fas fa-heartbeat"></i>
-                    Current Status & Diagnostics
-                </h2>
-                
-                <div style="display: flex; align-items: center; gap: 16px; margin: 16px 0;">
-                    <span style="font-size: 15px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Current Status:</span>
-                    {% if 'Healthy' in machine[7] %}
-                    <span class="status-badge healthy" style="font-size: 12px; padding: 6px 16px;">{{ machine[7] }}</span>
-                    {% elif 'Warning' in machine[7] %}
-                    <span class="status-badge warning" style="font-size: 12px; padding: 6px 16px;">{{ machine[7] }}</span>
-                    {% elif 'Critical' in machine[7] %}
-                    <span class="status-badge critical" style="font-size: 12px; padding: 6px 16px;">{{ machine[7] }}</span>
+                    {% if latest_prediction %}
+                    <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; color: #fff;">
+                            Diagnostic Run Values ({{ latest_prediction[12] }})
+                        </h3>
+                        
+                        <div class="metric" style="margin: 12px 0;">
+                            <span style="font-weight: 600; font-size: 13px;">Failure Probability</span>
+                            <strong style="float: right;">{{ (latest_prediction[9] * 100)|round(2) }}%</strong>
+                            <div class="progress">
+                                <div class="progress-fill" style="width: {{ latest_prediction[9] * 100 }}%; background: {% if 'Critical' in latest_prediction[8] %}var(--color-critical){% elif 'Warning' in latest_prediction[8] %}var(--color-warning){% else %}var(--color-healthy){% endif %};"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric" style="margin: 12px 0;">
+                            <span style="font-weight: 600; font-size: 13px;">Confidence (Model: {{ latest_prediction[11] }})</span>
+                            <strong style="float: right;">{{ latest_prediction[10] }}</strong>
+                            <div class="progress">
+                                <div class="progress-fill blue" style="width: {{ latest_prediction[10].replace('%', '') }}%;"></div>
+                            </div>
+                        </div>
+                        
+                        <h4 style="font-size: 12px; font-weight: 600; margin: 24px 0 12px 0; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Sensor Telemetry</h4>
+                        <div class="sensor-grid">
+                            <div class="sensor-box">
+                                <div class="sensor-label">Air Temp</div>
+                                <div class="sensor-value">{{ latest_prediction[2] }} K</div>
+                            </div>
+                            <div class="sensor-box">
+                                <div class="sensor-label">Process Temp</div>
+                                <div class="sensor-value">{{ latest_prediction[3] }} K</div>
+                            </div>
+                            <div class="sensor-box">
+                                <div class="sensor-label">Rot. Speed</div>
+                                <div class="sensor-value">{{ latest_prediction[4] }} RPM</div>
+                            </div>
+                            <div class="sensor-box">
+                                <div class="sensor-label">Torque</div>
+                                <div class="sensor-value">{{ latest_prediction[5] }} Nm</div>
+                            </div>
+                            <div class="sensor-box">
+                                <div class="sensor-label">Tool Wear</div>
+                                <div class="sensor-value">{{ latest_prediction[6] }} min</div>
+                            </div>
+                        </div>
+                    </div>
                     {% else %}
-                    <span class="status-badge healthy" style="font-size: 12px; padding: 6px 16px;">{{ machine[7] }}</span>
+                    <div class="empty-state">
+                        <i class="fas fa-calculator"></i>
+                        <p>No diagnostics run yet. Use the dashboard to perform diagnostics on this machine.</p>
+                    </div>
                     {% endif %}
                 </div>
+            </div>
+
+            <!-- Right Side: Health Timeline -->
+            <div class="timeline-card">
+                <h2>
+                    <i class="fas fa-route"></i>
+                    Recent Health Timeline Transitions
+                </h2>
                 
-                {% if latest_prediction %}
-                <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                    <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 16px; color: #fff;">
-                        Latest Diagnostic Run ({{ latest_prediction[12] }})
-                    </h3>
-                    
-                    <div class="metric" style="margin: 12px 0;">
-                        <span style="font-weight: 600; font-size: 13px;">Failure Probability</span>
-                        <strong style="float: right;">{{ (latest_prediction[9] * 100)|round(2) }}%</strong>
-                        <div class="progress">
-                            <div class="progress-fill" style="width: {{ latest_prediction[9] * 100 }}%; background: {% if 'Critical' in latest_prediction[8] %}var(--color-critical){% elif 'Warning' in latest_prediction[8] %}var(--color-warning){% else %}var(--color-healthy){% endif %};"></div>
+                {% if predictions %}
+                <div class="timeline-list">
+                    {% for row in predictions[:5] %}
+                    <div class="timeline-item">
+                        {% if 'Healthy' in row[8] %}
+                        <div class="timeline-badge healthy"></div>
+                        {% elif 'Warning' in row[8] %}
+                        <div class="timeline-badge warning"></div>
+                        {% else %}
+                        <div class="timeline-badge critical"></div>
+                        {% endif %}
+                        <div class="timeline-content">
+                            <div class="timeline-time">{{ row[12] }}</div>
+                            <div class="timeline-desc">
+                                <span>{{ row[8] }}</span>
+                                <span style="font-weight: 500; font-size: 11px; color: var(--text-secondary);">
+                                    Prob: {{ (row[9] * 100)|round(1) }}%
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="metric" style="margin: 12px 0;">
-                        <span style="font-weight: 600; font-size: 13px;">Confidence (Model: {{ latest_prediction[11] }})</span>
-                        <strong style="float: right;">{{ latest_prediction[10] }}</strong>
-                        <div class="progress">
-                            <div class="progress-fill blue" style="width: {{ latest_prediction[10].replace('%', '') }}%;"></div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="font-size: 12px; font-weight: 600; margin: 24px 0 12px 0; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Sensor Telemetry</h4>
-                    <div class="sensor-grid">
-                        <div class="sensor-box">
-                            <div class="sensor-label">Air Temp</div>
-                            <div class="sensor-value">{{ latest_prediction[2] }} K</div>
-                        </div>
-                        <div class="sensor-box">
-                            <div class="sensor-label">Process Temp</div>
-                            <div class="sensor-value">{{ latest_prediction[3] }} K</div>
-                        </div>
-                        <div class="sensor-box">
-                            <div class="sensor-label">Rot. Speed</div>
-                            <div class="sensor-value">{{ latest_prediction[4] }} RPM</div>
-                        </div>
-                        <div class="sensor-box">
-                            <div class="sensor-label">Torque</div>
-                            <div class="sensor-value">{{ latest_prediction[5] }} Nm</div>
-                        </div>
-                        <div class="sensor-box">
-                            <div class="sensor-label">Tool Wear</div>
-                            <div class="sensor-value">{{ latest_prediction[6] }} min</div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
                 {% else %}
                 <div class="empty-state">
-                    <i class="fas fa-calculator"></i>
-                    <p>No diagnostics run yet. Use the dashboard to perform diagnostics on this machine.</p>
+                    <i class="fas fa-history"></i>
+                    <p>No history timeline records exist for this unit.</p>
                 </div>
                 {% endif %}
             </div>
         </div>
+
+        <!-- Telemetry Trend Graphs -->
+        <div class="chart-grid">
+            <div class="chart-card" style="height: auto; min-height: 380px;">
+                <h2>
+                    <i class="fas fa-chart-line"></i>
+                    Failure Probability Trend Over Time
+                </h2>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="failureTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card" style="height: auto; min-height: 380px;">
+                <h2>
+                    <i class="fas fa-wrench"></i>
+                    Tool Wear Accumulation Trend (min)
+                </h2>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="wearTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
         
-        <!-- Prediction History Log -->
+        <!-- Complete Prediction History Log -->
         <div class="history-log-card">
             <h2>
                 <i class="fas fa-history"></i>
-                Diagnostic History Log
+                All Diagnostic History Logs
             </h2>
             
             {% if predictions %}
@@ -381,6 +619,77 @@
         </div>
     </main>
 </div>
+
+<!-- Embedded chronological trend dataset -->
+<script>
+    const trendData = {{ chronological_json | safe }};
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        if (trendData.length === 0) return;
+
+        const labels = trendData.map(d => d.date);
+        const failureProbs = trendData.map(d => d.failure_prob * 100);
+        const toolWears = trendData.map(d => d.tool_wear);
+
+        // 1. Failure Probability Trend Chart
+        const ctxFailure = document.getElementById("failureTrendChart").getContext("2d");
+        new Chart(ctxFailure, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Failure Risk (%)",
+                    data: failureProbs,
+                    borderColor: "#ef4444",
+                    backgroundColor: "rgba(239, 68, 68, 0.1)",
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: "#94a3b8", font: { family: "Outfit" } } }
+                },
+                scales: {
+                    x: { grid: { color: "rgba(255, 255, 255, 0.05)" }, ticks: { color: "#94a3b8", font: { family: "Outfit" } } },
+                    y: { grid: { color: "rgba(255, 255, 255, 0.05)" }, ticks: { color: "#94a3b8", font: { family: "Outfit" } }, min: 0, max: 100 }
+                }
+            }
+        });
+
+        // 2. Tool Wear Trend Chart
+        const ctxWear = document.getElementById("wearTrendChart").getContext("2d");
+        new Chart(ctxWear, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Tool Wear (min)",
+                    data: toolWears,
+                    borderColor: "#3b82f6",
+                    backgroundColor: "rgba(59, 130, 246, 0.1)",
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: "#94a3b8", font: { family: "Outfit" } } }
+                },
+                scales: {
+                    x: { grid: { color: "rgba(255, 255, 255, 0.05)" }, ticks: { color: "#94a3b8", font: { family: "Outfit" } } },
+                    y: { grid: { color: "rgba(255, 255, 255, 0.05)" }, ticks: { color: "#94a3b8", font: { family: "Outfit" } } }
+                }
+            }
+        });
+    });
+</script>
 
 </body>
 

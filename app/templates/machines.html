@@ -43,18 +43,18 @@
                     <i class="fas fa-history"></i> Diagnostics History
                 </a>
             </li>
-            
             <li>
                 <a href="/analytics">
                     <i class="fas fa-chart-pie"></i> Advanced Analytics
                 </a>
             </li>
             <li>
-                <a class="disabled-item">
+                <a href="/maintenance">
                     <i class="fas fa-calendar-alt"></i> Maintenance
-                    <span class="badge-upcoming">Phase 5</span>
                 </a>
             </li>
+            
+            <!-- Future Modules Blocked Out for Platform Completeness -->
             <li>
                 <a class="disabled-item">
                     <i class="fas fa-file-download"></i> Reports
@@ -62,6 +62,22 @@
                 </a>
             </li>
         </ul>
+
+        <!-- User Profile Info at bottom of Sidebar -->
+        <div class="sidebar-user" style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #1f2937; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary-blue); border: 1.5px solid var(--border-color);">
+                    {{ session.get('username')[0]|upper if session.get('username') else 'U' }}
+                </div>
+                <div>
+                    <div style="font-weight: 600; color: #fff;">{{ session.get('username') }}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">{{ session.get('role') }}</div>
+                </div>
+            </div>
+            <a href="/logout" title="Sign Out" style="color: var(--text-secondary); font-size: 16px; transition: color 0.2s ease;">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
     </aside>
 
     <!-- Main Content Area -->
@@ -81,8 +97,9 @@
             </div>
         </header>
 
-        <div class="main-grid">
-            <!-- Left Card: Register Machine -->
+        <div class="main-grid" {% if session.get('role') != 'Admin' %}style="grid-template-columns: 1fr;"{% endif %}>
+            <!-- Left Card: Register Machine (Admin Only) -->
+            {% if session.get('role') == 'Admin' %}
             <div class="card">
                 <h2>
                     <i class="fas fa-plus-circle"></i>
@@ -143,6 +160,7 @@
                     </button>
                 </form>
             </div>
+            {% endif %}
 
             <!-- Right Card: Registered Machines -->
             <div class="card">
@@ -172,7 +190,9 @@
                                 <th>Name</th>
                                 <th>Department</th>
                                 <th>Status</th>
+                                {% if session.get('role') == 'Admin' %}
                                 <th>Actions</th>
+                                {% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -200,6 +220,7 @@
                                     <span class="status-badge healthy">{{ machine[7] }}</span>
                                     {% endif %}
                                 </td>
+                                {% if session.get('role') == 'Admin' %}
                                 <td>
                                     <a href="/edit-machine/{{ machine[0] }}"
                                        class="edit-btn"
@@ -214,6 +235,7 @@
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>

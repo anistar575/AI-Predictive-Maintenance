@@ -137,7 +137,9 @@ def get_connection():
     Create a connection to the SQLite database.
     """
     DB_PATH.parent.mkdir(exist_ok=True)
-    return sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA foreign_keys = ON;")
+    return conn
 
 
 def create_table():
@@ -460,12 +462,128 @@ def get_all_departments():
     return depts
 
 
+def create_maintenance_table():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS maintenance_schedules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        machine_code TEXT NOT NULL,
+        task_name TEXT NOT NULL,
+        scheduled_date TEXT NOT NULL,
+        urgency TEXT NOT NULL,
+        completed INTEGER DEFAULT 0,
+        FOREIGN KEY (machine_code) REFERENCES machines (machine_code) ON DELETE CASCADE
+    )
+    """)
+    conn.commit()
+    conn.close()
+
+
+def add_maintenance_schedule(machine_code, task_name, scheduled_date, urgency):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO maintenance_schedules (machine_code, task_name, scheduled_date, urgency)
+        VALUES (?, ?, ?, ?)
+    """, (machine_code, task_name, scheduled_date, urgency))
+    conn.commit()
+    conn.close()
+
+
+def get_maintenance_schedules():
+    conn = get_connection()
+    cursor = cursor = conn.cursor()
+    cursor.execute("""
+        SELECT s.id, s.machine_code, s.task_name, s.scheduled_date, s.urgency, s.completed, m.machine_name
+        FROM maintenance_schedules s
+        LEFT JOIN machines m ON s.machine_code = m.machine_code
+        ORDER BY s.scheduled_date ASC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+
+def complete_maintenance_schedule(schedule_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE maintenance_schedules
+        SET completed = 1
+        WHERE id = ?
+    """, (schedule_id,))
+    conn.commit()
+    conn.close()
+
+
+def delete_maintenance_schedule(schedule_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        DELETE FROM maintenance_schedules
+        WHERE id = ?
+    """, (schedule_id,))
+    conn.commit()
+    conn.close()
+
+
+def create_users_table():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL
+    )
+    """)
+    conn.commit()
+    
+    # Seed default accounts
+    from werkzeug.security import generate_password_hash
+    cursor.execute("SELECT id FROM users WHERE username = 'admin'")
+    if not cursor.fetchone():
+        cursor.execute("""
+            INSERT INTO users (username, password, role)
+            VALUES (?, ?, ?)
+        """, ("admin", generate_password_hash("adminpassword"), "Admin"))
+        
+    cursor.execute("SELECT id FROM users WHERE username = 'operator'")
+    if not cursor.fetchone():
+        cursor.execute("""
+            INSERT INTO users (username, password, role)
+            VALUES (?, ?, ?)
+        """, ("operator", generate_password_hash("operatorpassword"), "Operator"))
+        
+    conn.commit()
+    conn.close()
+
+
+def get_user_by_username(username):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, username, password, role
+        FROM users
+        WHERE username = ?
+    """, (username,))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+
 def initialize_database():
 
     create_table()
 
     create_machine_table()
-    
+
+    create_maintenance_table()
+
+    create_users_table()
+
 
 if __name__ == "__main__":
     initialize_database()

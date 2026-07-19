@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Scheduler - INDHAN AI</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/machines.css') }}">
+    
+    <style>
+        .scheduler-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .schedule-form-card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            height: fit-content;
+        }
+
+        .tasks-card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
+            margin-bottom: 32px;
+        }
+
+        .btn-action-complete {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--color-healthy);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action-complete:hover {
+            background: var(--color-healthy);
+            color: #fff;
+        }
+
+        .btn-action-delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--color-critical);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action-delete:hover {
+            background: var(--color-critical);
+            color: #fff;
+        }
+
+        .urgency-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .urgency-badge.high {
+            background: var(--color-critical-bg);
+            color: var(--color-critical);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+        }
+
+        .urgency-badge.medium {
+            background: var(--color-warning-bg);
+            color: var(--color-warning);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
+
+        .urgency-badge.low {
+            background: var(--color-healthy-bg);
+            color: var(--color-healthy);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        .empty-tasks {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-tasks i {
+            font-size: 36px;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 1080px) {
+            .scheduler-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-industry"></i>
+            <div>
+                <h2>INDHAN AI</h2>
+                <span>Predictive Maintenance</span>
+            </div>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/machines">
+                    <i class="fas fa-industry"></i> Machine Registry
+                </a>
+            </li>
+            <li>
+                <a href="/history">
+                    <i class="fas fa-history"></i> Diagnostics History
+                </a>
+            </li>
+            <li>
+                <a href="/analytics">
+                    <i class="fas fa-chart-pie"></i> Advanced Analytics
+                </a>
+            </li>
+            <li>
+                <a href="/maintenance" class="active">
+                    <i class="fas fa-calendar-alt"></i> Maintenance
+                </a>
+            </li>
+            
+            <!-- Future Modules Blocked Out for Platform Completeness -->
+            <li>
+                <a class="disabled-item">
+                    <i class="fas fa-file-download"></i> Reports
+                    <span class="badge-upcoming">Phase 7</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- User Profile Info at bottom of Sidebar -->
+        <div class="sidebar-user" style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #1f2937; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary-blue); border: 1.5px solid var(--border-color);">
+                    {{ session.get('username')[0]|upper if session.get('username') else 'U' }}
+                </div>
+                <div>
+                    <div style="font-weight: 600; color: #fff;">{{ session.get('username') }}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">{{ session.get('role') }}</div>
+                </div>
+            </div>
+            <a href="/logout" title="Sign Out" style="color: var(--text-secondary); font-size: 16px; transition: color 0.2s ease;">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Content Header -->
+        <header class="content-header">
+            <div>
+                <h1>Maintenance Scheduler</h1>
+                <p style="color: var(--text-secondary); margin-top: 4px; font-size: 14px;">
+                    Schedule preventative tasks, allocate engineering crews, and log maintenance activities.
+                </p>
+            </div>
+            
+            <div class="system-status">
+                <span class="status-dot"></span>
+                System Status: Online
+            </div>
+        </header>
+
+        <div class="scheduler-layout" {% if session.get('role') != 'Admin' %}style="grid-template-columns: 1fr;"{% endif %}>
+            <!-- Left Side: Schedule Form (Admin Only) -->
+            {% if session.get('role') == 'Admin' %}
+            <div class="schedule-form-card">
+                <h2>
+                    <i class="fas fa-calendar-plus"></i>
+                    Schedule Maintenance
+                </h2>
+
+                <form action="/maintenance/add" method="POST" style="margin-top: 24px;">
+                    <div class="form-group">
+                        <label>Target Machine Unit</label>
+                        <select name="machine_code" required style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                            <option value="" disabled selected>Select machine unit...</option>
+                            {% for machine in machines %}
+                            <option value="{{ machine[1] }}">{{ machine[1] }} - {{ machine[2] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Task Description</label>
+                        <input type="text"
+                               name="task_name"
+                               placeholder="e.g. Cutter head sharpening / Bearing replace"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Scheduled Date</label>
+                        <input type="date"
+                               name="scheduled_date"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Urgency Level</label>
+                        <select name="urgency" required style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                            <option value="Low">Low (Routine Check)</option>
+                            <option value="Medium" selected>Medium (Preventative)</option>
+                            <option value="High">High (Urgent Repair)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-save" style="margin-top: 24px;">
+                        <i class="fas fa-clock"></i> Commit to Schedule
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Right Side: Pending Queue -->
+            <div>
+                <div class="tasks-card">
+                    <h2>
+                        <i class="fas fa-clipboard-list"></i>
+                        Pending Maintenance Queue
+                    </h2>
+
+                    {% if pending %}
+                    <div style="overflow-x: auto; margin-top: 20px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Machine</th>
+                                    <th>Task Name</th>
+                                    <th>Scheduled Date</th>
+                                    <th>Urgency</th>
+                                    {% if session.get('role') == 'Admin' %}
+                                    <th style="text-align: right;">Actions</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in pending %}
+                                <tr>
+                                    <td>
+                                        <a href="/machine/{{ row[1] }}" style="font-weight: 600; color: var(--primary-blue); text-decoration: none;">
+                                            {{ row[1] }}
+                                        </a>
+                                        <span style="display: block; font-size: 11px; color: var(--text-secondary);">{{ row[6] }}</span>
+                                    </td>
+                                    <td style="font-weight: 500;">{{ row[2] }}</td>
+                                    <td>{{ row[3] }}</td>
+                                    <td>
+                                        {% if row[4] == 'High' %}
+                                        <span class="urgency-badge high">{{ row[4] }}</span>
+                                        {% elif row[4] == 'Medium' %}
+                                        <span class="urgency-badge medium">{{ row[4] }}</span>
+                                        {% else %}
+                                        <span class="urgency-badge low">{{ row[4] }}</span>
+                                        {% endif %}
+                                    </td>
+                                    {% if session.get('role') == 'Admin' %}
+                                    <td style="text-align: right;">
+                                        <div style="display: inline-flex; gap: 8px;">
+                                            <!-- Action Form Complete -->
+                                            <form action="/maintenance/complete/{{ row[0] }}" method="POST" style="margin: 0;">
+                                                <button type="submit" class="btn-action-complete" title="Mark Task Complete">
+                                                    <i class="fas fa-check"></i> Complete
+                                                </button>
+                                            </form>
+                                            <!-- Action Form Cancel -->
+                                            <form action="/maintenance/delete/{{ row[0] }}" method="POST" style="margin: 0;">
+                                                <button type="submit" class="btn-action-delete" title="Cancel/Delete Task">
+                                                    <i class="fas fa-times"></i> Cancel
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-tasks">
+                        <i class="fas fa-check-double"></i>
+                        <p>No pending maintenance tasks scheduled. Equipment is running fine!</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Completed Task Log -->
+                <div class="tasks-card">
+                    <h2>
+                        <i class="fas fa-history"></i>
+                        Completed Maintenance History Log
+                    </h2>
+
+                    {% if completed %}
+                    <div style="overflow-x: auto; margin-top: 20px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Machine</th>
+                                    <th>Task Name</th>
+                                    <th>Scheduled Date</th>
+                                    <th>Urgency</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in completed %}
+                                <tr>
+                                    <td>
+                                        <a href="/machine/{{ row[1] }}" style="font-weight: 600; color: var(--primary-blue); text-decoration: none;">
+                                            {{ row[1] }}
+                                        </a>
+                                        <span style="display: block; font-size: 11px; color: var(--text-secondary);">{{ row[6] }}</span>
+                                    </td>
+                                    <td style="font-weight: 500; color: var(--text-secondary);">{{ row[2] }}</td>
+                                    <td>{{ row[3] }}</td>
+                                    <td>
+                                        {% if row[4] == 'High' %}
+                                        <span class="urgency-badge high" style="opacity: 0.6;">{{ row[4] }}</span>
+                                        {% elif row[4] == 'Medium' %}
+                                        <span class="urgency-badge medium" style="opacity: 0.6;">{{ row[4] }}</span>
+                                        {% else %}
+                                        <span class="urgency-badge low" style="opacity: 0.6;">{{ row[4] }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="status-badge healthy" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px;">
+                                            <i class="fas fa-check-circle"></i> Complete
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-tasks">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No completed maintenance task logs found.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+</body>
+
+</html>
