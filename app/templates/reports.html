@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports Dashboard - INDHAN AI</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/machines.css') }}">
+          
+    <style>
+        .reports-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .config-card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            height: fit-content;
+        }
+
+        .preview-card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
+        }
+
+        .actions-bar {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .btn-download {
+            flex: 1;
+            height: 46px;
+            background: linear-gradient(90deg, #10b981, #059669);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-download:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-print {
+            flex: 1;
+            height: 46px;
+            background: linear-gradient(90deg, var(--primary-blue), #2563eb);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-print:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+        }
+
+        .empty-preview {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-preview i {
+            font-size: 40px;
+            color: #374151;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 1080px) {
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-industry"></i>
+            <div>
+                <h2>INDHAN AI</h2>
+                <span>Predictive Maintenance</span>
+            </div>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/machines">
+                    <i class="fas fa-industry"></i> Machine Registry
+                </a>
+            </li>
+            <li>
+                <a href="/history">
+                    <i class="fas fa-history"></i> Diagnostics History
+                </a>
+            </li>
+            <li>
+                <a href="/analytics">
+                    <i class="fas fa-chart-pie"></i> Advanced Analytics
+                </a>
+            </li>
+            <li>
+                <a href="/maintenance">
+                    <i class="fas fa-calendar-alt"></i> Maintenance
+                </a>
+            </li>
+            <li>
+                <a href="/reports" class="active">
+                    <i class="fas fa-file-download"></i> Reports
+                </a>
+            </li>
+        </ul>
+
+        <!-- User Profile Info at bottom of Sidebar -->
+        <div class="sidebar-user" style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #1f2937; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary-blue); border: 1.5px solid var(--border-color);">
+                    {{ session.get('username')[0]|upper if session.get('username') else 'U' }}
+                </div>
+                <div>
+                    <div style="font-weight: 600; color: #fff;">{{ session.get('username') }}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">{{ session.get('role') }}</div>
+                </div>
+            </div>
+            <a href="/logout" title="Sign Out" style="color: var(--text-secondary); font-size: 16px; transition: color 0.2s ease;">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Content Header -->
+        <header class="content-header">
+            <div>
+                <h1>Reports & Exports</h1>
+                <p style="color: var(--text-secondary); margin-top: 4px; font-size: 14px;">
+                    Generate machinery asset registries, maintenance logs, and prediction telemetry data reports.
+                </p>
+            </div>
+            
+            <div class="system-status" style="display: flex; align-items: center; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="status-dot"></span>
+                    System Status: Online
+                </div>
+                
+                <!-- Notifications Bell System -->
+                <div class="notifications-wrapper">
+                    <div class="notifications-bell">
+                        <i class="fas fa-bell"></i>
+                        {% if unread_notifications_count > 0 %}
+                        <span class="notifications-badge">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="notifications-dropdown">
+                        <div class="notifications-header">
+                            <h3><i class="fas fa-bell" style="color: var(--primary-blue);"></i> Active Notifications</h3>
+                            <span>{{ unread_notifications_count }} Alert{{ 's' if unread_notifications_count != 1 else '' }}</span>
+                        </div>
+                        <div class="notifications-list">
+                            {% if system_notifications %}
+                                {% for n in system_notifications %}
+                                <div class="notification-item">
+                                    <div class="notification-icon-col">
+                                        {% if n.severity == 'critical' %}
+                                        <i class="fas fa-exclamation-triangle critical"></i>
+                                        {% elif n.severity == 'warning' %}
+                                        <i class="fas fa-exclamation-circle warning"></i>
+                                        {% else %}
+                                        <i class="fas fa-calendar-alt info"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="notification-content-col">
+                                        <div class="notification-title">{{ n.title }}</div>
+                                        <div class="notification-message">{{ n.message }}</div>
+                                        <div class="notification-time">
+                                            <i class="far fa-clock"></i> {{ n.time }}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="empty-notifications">
+                                    <i class="fas fa-check-circle" style="color: var(--color-healthy);"></i>
+                                    <p>All clear! No critical alerts active.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="reports-grid">
+            <!-- Left Side: Config Card -->
+            <div class="config-card">
+                <h2>
+                    <i class="fas fa-sliders"></i>
+                    Configure Report
+                </h2>
+
+                <div style="margin-top: 24px;">
+                    <div class="form-group">
+                        <label>Report Type</label>
+                        <select id="report_type" style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                            <option value="predictions" selected>Diagnostics Telemetry History</option>
+                            <option value="machines">Registered Machinery Assets</option>
+                            <option value="maintenance">Maintenance Task Schedules</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Machine Unit</label>
+                        <select id="machine_code" style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                            <option value="all" selected>All Machine Units</option>
+                            {% for machine in machines %}
+                            <option value="{{ machine[1] }}">{{ machine[1] }} - {{ machine[2] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select id="department" style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                            <option value="all" selected>All Departments</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept }}">{{ dept }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status / Health Filter</label>
+                        <select id="status" style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                            <option value="all" selected>All Statuses</option>
+                            <option value="Healthy">Healthy / Complete</option>
+                            <option value="Warning">Warning / Pending</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" id="start_date">
+                    </div>
+
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="date" id="end_date">
+                    </div>
+
+                    <div class="actions-bar">
+                        <button onclick="downloadCSV()" class="btn-download" title="Download CSV File">
+                            <i class="fas fa-file-csv"></i> Excel / CSV
+                        </button>
+                        <button onclick="printPDF()" class="btn-print" title="Print PDF Document">
+                            <i class="fas fa-file-pdf"></i> Print PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Live Sneak Peek -->
+            <div class="preview-card">
+                <h2>
+                    <i class="fas fa-eye"></i>
+                    Data Sneak Peek (Latest Logs)
+                </h2>
+
+                <div style="overflow-x: auto; margin-top: 24px;">
+                    <table>
+                        <thead>
+                            <tr id="preview-headers">
+                                <th>ID</th>
+                                <th>Machine Code</th>
+                                <th>Machine Name</th>
+                                <th>Air Temp (K)</th>
+                                <th>Tool Wear (min)</th>
+                                <th>Status</th>
+                                <th>Prediction Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="preview-body">
+                            {% for row in preview_data %}
+                            <tr>
+                                <td>{{ row[0] }}</td>
+                                <td><span style="font-weight: 600; color: var(--primary-blue);">{{ row[1] }}</span></td>
+                                <td>{{ row[14] }}</td>
+                                <td>{{ row[2] }} K</td>
+                                <td>{{ row[6] }} min</td>
+                                <td>
+                                    {% if 'Healthy' in row[9] %}
+                                    <span class="status-badge healthy">{{ row[9] }}</span>
+                                    {% elif 'Warning' in row[9] %}
+                                    <span class="status-badge warning">{{ row[9] }}</span>
+                                    {% else %}
+                                    <span class="status-badge critical">{{ row[9] }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="font-size: 12px; color: var(--text-secondary);">{{ row[13][:16] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    function buildQueryString() {
+        const type = document.getElementById('report_type').value;
+        const machine_code = document.getElementById('machine_code').value;
+        const department = document.getElementById('department').value;
+        const status = document.getElementById('status').value;
+        const start_date = document.getElementById('start_date').value;
+        const end_date = document.getElementById('end_date').value;
+        
+        return `?type=${type}&machine_code=${machine_code}&department=${department}&status=${status}&start_date=${start_date}&end_date=${end_date}`;
+    }
+
+    function downloadCSV() {
+        const query = buildQueryString();
+        window.location.href = `/reports/download${query}`;
+    }
+
+    function printPDF() {
+        const query = buildQueryString();
+        window.open(`/reports/print${query}`, '_blank');
+    }
+</script>
+</body>
+
+</html>

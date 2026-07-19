@@ -56,9 +56,8 @@
             
             <!-- Future Modules Blocked Out for Platform Completeness -->
             <li>
-                <a class="disabled-item">
+                <a href="/reports">
                     <i class="fas fa-file-download"></i> Reports
-                    <span class="badge-upcoming">Phase 7</span>
                 </a>
             </li>
         </ul>
@@ -91,9 +90,56 @@
                 </p>
             </div>
             
-            <div class="system-status">
-                <span class="status-dot"></span>
-                System Status: Online
+            <div class="system-status" style="display: flex; align-items: center; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="status-dot"></span>
+                    System Status: Online
+                </div>
+                
+                <!-- Notifications Bell System -->
+                <div class="notifications-wrapper">
+                    <div class="notifications-bell">
+                        <i class="fas fa-bell"></i>
+                        {% if unread_notifications_count > 0 %}
+                        <span class="notifications-badge">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="notifications-dropdown">
+                        <div class="notifications-header">
+                            <h3><i class="fas fa-bell" style="color: var(--primary-blue);"></i> Active Notifications</h3>
+                            <span>{{ unread_notifications_count }} Alert{{ 's' if unread_notifications_count != 1 else '' }}</span>
+                        </div>
+                        <div class="notifications-list">
+                            {% if system_notifications %}
+                                {% for n in system_notifications %}
+                                <div class="notification-item">
+                                    <div class="notification-icon-col">
+                                        {% if n.severity == 'critical' %}
+                                        <i class="fas fa-exclamation-triangle critical"></i>
+                                        {% elif n.severity == 'warning' %}
+                                        <i class="fas fa-exclamation-circle warning"></i>
+                                        {% else %}
+                                        <i class="fas fa-calendar-alt info"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="notification-content-col">
+                                        <div class="notification-title">{{ n.title }}</div>
+                                        <div class="notification-message">{{ n.message }}</div>
+                                        <div class="notification-time">
+                                            <i class="far fa-clock"></i> {{ n.time }}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="empty-notifications">
+                                    <i class="fas fa-check-circle" style="color: var(--color-healthy);"></i>
+                                    <p>All clear! No critical alerts active.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 

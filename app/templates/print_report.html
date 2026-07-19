@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Report - INDHAN AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #111;
+            background-color: #fff;
+            margin: 40px;
+            padding: 0;
+            font-size: 13px;
+        }
+
+        .report-header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .brand-section h1 {
+            font-size: 26px;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .brand-section p {
+            margin: 0;
+            color: #555;
+            font-size: 13px;
+        }
+
+        .meta-section {
+            text-align: right;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .filters-box {
+            background-color: #f4f4f5;
+            border: 1px solid #e4e4e7;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 30px;
+        }
+
+        .filters-box h3 {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px 20px;
+        }
+
+        .filter-item {
+            font-size: 12px;
+        }
+
+        .filter-item span {
+            font-weight: bold;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background-color: #e4e4e7;
+            color: #111;
+            font-weight: 700;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #c4c4c7;
+            font-size: 12px;
+        }
+
+        td {
+            padding: 10px;
+            border: 1px solid #e4e4e7;
+            font-size: 12px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .footer-note {
+            margin-top: 50px;
+            border-top: 1px solid #e4e4e7;
+            padding-top: 16px;
+            text-align: center;
+            font-size: 11px;
+            color: #777;
+        }
+
+        /* Styles for Print Layout Output */
+        @media print {
+            body {
+                margin: 20px;
+            }
+            .no-print {
+                display: none;
+            }
+            tr {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="report-header">
+        <div class="brand-section">
+            <h1>INDHAN AI Report</h1>
+            <p>Predictive Maintenance Telemetry & Analytics Platform</p>
+        </div>
+        <div class="meta-section">
+            <div><strong>Generated At:</strong> <span id="gen-time"></span></div>
+            <div><strong>System Status:</strong> Operational</div>
+        </div>
+    </div>
+
+    <div class="filters-box">
+        <h3>Report Criteria</h3>
+        <div class="filters-grid">
+            <div class="filter-item"><span>Report Category:</span> {{ filters['Type'] }}</div>
+            <div class="filter-item"><span>Machine Unit:</span> {{ filters['Machine Code'] }}</div>
+            <div class="filter-item"><span>Department:</span> {{ filters['Department'] }}</div>
+            <div class="filter-item"><span>Status Filter:</span> {{ filters['Status'] }}</div>
+            <div class="filter-item"><span>Date Range:</span> {{ filters['Date Range'] }}</div>
+        </div>
+    </div>
+
+    <h2>{{ title }}</h2>
+
+    {% if rows %}
+    <table>
+        <thead>
+            <tr>
+                {% for header in headers %}
+                <th>{{ header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                {% for col in row %}
+                <td>{{ col }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="padding: 20px; text-align: center; background-color: #f9f9f9; border: 1px dashed #ddd; border-radius: 4px;">
+        No records found matching the specified report criteria.
+    </p>
+    {% endif %}
+
+    <div class="footer-note">
+        This is an automatically generated system report. Confidential. &copy; INDHAN AI Operations Group.
+    </div>
+
+    <script>
+        // Set dynamic generation timestamp
+        document.getElementById('gen-time').innerText = new Date().toLocaleString();
+        
+        // Auto launch browser print dialog
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    </script>
+
+</body>
+
+</html>
