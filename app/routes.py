@@ -1,8 +1,12 @@
 from flask import redirect
 from database.database import (
+    save_prediction,
+    get_all_predictions,
     add_machine,
     get_all_machines,
     delete_machine,
+    get_machine,
+    update_machine_status
 )
 from database.database import (
     save_prediction,
@@ -34,12 +38,20 @@ def home():
 @main.route("/predict", methods=["POST"])
 def predict():
     try:
+
+        machine = get_machine(request.form["machine_code"])
+
         data = {
-            "Type": request.form["Type"],
+            "Type": machine[3],   # Machine Type (H/M/L)
+
             "Air temperature [K]": float(request.form["air_temperature"]),
+
             "Process temperature [K]": float(request.form["process_temperature"]),
+
             "Rotational speed [rpm]": float(request.form["rotational_speed"]),
+
             "Torque [Nm]": float(request.form["torque"]),
+
             "Tool wear [min]": float(request.form["tool_wear"]),
         }
 
@@ -48,6 +60,7 @@ def predict():
         result = prediction["Results"][0]
 
         save_prediction(
+            machine_code=request.form["machine_code"],
             machine_type=data["Type"],
             air_temperature=float(data["Air temperature [K]"]),
             process_temperature=float(data["Process temperature [K]"]),
@@ -60,6 +73,9 @@ def predict():
             confidence=result["Confidence"],
             model_used=prediction["Model Used"],
         )
+        update_machine_status(
+    request.form["machine_code"],
+    result["Health Status"])
 
         return jsonify(prediction)
 

@@ -86,11 +86,21 @@
 
                     <label>Machine Type</label>
 
-                    <select name="machine_type">
+                    <select
+    name="machine_code"
+    id="machine_code">
 
-    <option value="H">High (H)</option>
-    <option value="M">Medium (M)</option>
-    <option value="L">Low (L)</option>
+    {% for machine in machines %}
+
+    <option
+        value="{{ machine[1] }}">
+
+        {{ machine[1] }} -
+        {{ machine[2] }}
+
+    </option>
+
+    {% endfor %}
 
 </select>
 

@@ -124,42 +124,45 @@ def create_table():
     cursor = conn.cursor()
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS prediction_history(
+CREATE TABLE IF NOT EXISTS prediction_history(
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-        machine_type TEXT,
+    machine_code TEXT,
 
-        air_temperature REAL,
+    machine_type TEXT,
 
-        process_temperature REAL,
+    air_temperature REAL,
 
-        rotational_speed INTEGER,
+    process_temperature REAL,
 
-        torque REAL,
+    rotational_speed INTEGER,
 
-        tool_wear INTEGER,
+    torque REAL,
 
-        prediction TEXT,
+    tool_wear INTEGER,
 
-        health_status TEXT,
+    prediction TEXT,
 
-        failure_probability REAL,
+    health_status TEXT,
 
-        confidence TEXT,
+    failure_probability REAL,
 
-        model_used TEXT,
+    confidence TEXT,
 
-        prediction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    model_used TEXT,
 
-    );
-    """)
+    prediction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+);
+""")
 
     conn.commit()
     conn.close()
 
 
 def save_prediction(
+    machine_code,
     machine_type,
     air_temperature,
     process_temperature,
@@ -182,6 +185,7 @@ def save_prediction(
     cursor.execute("""
         INSERT INTO prediction_history(
 
+            machine_code,
             machine_type,
             air_temperature,
             process_temperature,
@@ -195,7 +199,7 @@ def save_prediction(
             model_used
 
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
     """, (
 
         machine_type,
@@ -314,6 +318,47 @@ def delete_machine(machine_id):
     conn.commit()
 
     conn.close()
+def update_machine_status(machine_code, status):
+
+    conn = get_connection()
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+
+        UPDATE machines
+
+        SET current_status = ?
+
+        WHERE machine_code = ?
+
+    """, (status, machine_code))
+
+    conn.commit()
+
+    conn.close()
+def get_machine(machine_code):
+
+    conn = get_connection()
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+
+        SELECT *
+
+        FROM machines
+
+        WHERE machine_code = ?
+
+    """, (machine_code,))
+
+    machine = cursor.fetchone()
+
+    conn.close()
+
+    return machine
+
 def initialize_database():
 
     create_table()
