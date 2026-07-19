@@ -109,10 +109,17 @@
                 Registered Machines
             </h2>
 
-            <div class="toolbar">
+            <div class="toolbar" style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
                 <input type="text"
                        id="machineSearch"
-                       placeholder="Search Machine...">
+                       placeholder="Search Machine..."
+                       style="flex: 1; min-width: 200px;">
+                <select id="statusFilter" style="width: 180px; height: 42px; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 14px; outline: none; padding: 10px 16px; background-color: white;">
+                    <option value="all">All Status</option>
+                    <option value="Healthy">Healthy</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Critical">Critical</option>
+                </select>
             </div>
 
             <table>
@@ -128,8 +135,16 @@
                 <tbody>
                     {% for machine in machines %}
                     <tr class="machine-row">
-                        <td>{{ machine[1] }}</td>
-                        <td>{{ machine[2] }}</td>
+                        <td>
+                            <a href="/machine/{{ machine[1] }}" style="font-weight: 600; color: var(--primary-blue); text-decoration: none; hover: underline;">
+                                {{ machine[1] }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="/machine/{{ machine[1] }}" style="font-weight: 600; color: var(--navy-dark); text-decoration: none;">
+                                {{ machine[2] }}
+                            </a>
+                        </td>
                         <td>{{ machine[4] }}</td>
                         <td>
                             {% if 'Healthy' in machine[7] %}
@@ -143,9 +158,16 @@
                             {% endif %}
                         </td>
                         <td>
+                            <a href="/edit-machine/{{ machine[0] }}"
+                               class="edit-btn"
+                               style="color: var(--primary-blue); margin-right: 12px; font-size: 16px; text-decoration: none; display: inline-block; padding: 4px;"
+                               title="Edit Machine">
+                                <i class="fas fa-edit"></i>
+                            </a>
                             <a href="/delete-machine/{{ machine[0] }}"
                                class="delete-btn"
-                               onclick="return confirm('Are you sure you want to delete this machine?');">
+                               onclick="return confirm('Are you sure you want to delete this machine?');"
+                               title="Delete Machine">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </td>

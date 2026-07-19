@@ -1,16 +1,35 @@
 const search = document.getElementById("machineSearch");
+const statusFilter = document.getElementById("statusFilter");
 
-search.addEventListener("keyup", function(){
+function filterMachines() {
+    const searchValue = search ? search.value.toLowerCase() : "";
+    const filterValue = statusFilter ? statusFilter.value : "all";
 
-    const value = this.value.toLowerCase();
+    document.querySelectorAll(".machine-row").forEach(row => {
+        const textMatches = row.innerText.toLowerCase().includes(searchValue);
+        
+        let statusMatches = false;
+        if (filterValue === "all") {
+            statusMatches = true;
+        } else {
+            const badge = row.querySelector(".status-badge");
+            if (badge) {
+                // E.g., checks if "🟢 Healthy" contains "Healthy"
+                statusMatches = badge.innerText.toLowerCase().includes(filterValue.toLowerCase());
+            }
+        }
 
-    document.querySelectorAll(".machine-row").forEach(row=>{
-
-        row.style.display =
-            row.innerText.toLowerCase().includes(value)
-            ? ""
-            : "none";
-
+        if (textMatches && statusMatches) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
     });
+}
 
-});
+if (search) {
+    search.addEventListener("keyup", filterMachines);
+}
+if (statusFilter) {
+    statusFilter.addEventListener("change", filterMachines);
+}

@@ -351,6 +351,84 @@ def get_machine(machine_code):
 
     return machine
 
+
+def get_machine_by_id(machine_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT *
+        FROM machines
+        WHERE id = ?
+    """, (machine_id,))
+    machine = cursor.fetchone()
+    conn.close()
+    return machine
+
+
+def update_machine(
+    machine_id,
+    machine_code,
+    machine_name,
+    machine_type,
+    department,
+    location,
+    installation_date
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Cascade update prediction_history when machine_code changes
+        cursor.execute("SELECT machine_code FROM machines WHERE id = ?", (machine_id,))
+        row = cursor.fetchone()
+        if row:
+            old_code = row[0]
+            if old_code != machine_code:
+                cursor.execute("""
+                    UPDATE prediction_history
+                    SET machine_code = ?
+                    WHERE machine_code = ?
+                """, (machine_code, old_code))
+        
+        cursor.execute("""
+            UPDATE machines
+            SET machine_code = ?,
+                machine_name = ?,
+                machine_type = ?,
+                department = ?,
+                location = ?,
+                installation_date = ?
+            WHERE id = ?
+        """, (
+            machine_code,
+            machine_name,
+            machine_type,
+            department,
+            location,
+            installation_date,
+            machine_id
+        ))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        conn.close()
+
+
+def get_predictions_by_machine(machine_code):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT *
+        FROM prediction_history
+        WHERE machine_code = ?
+        ORDER BY prediction_time DESC
+    """, (machine_code,))
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+
 def initialize_database():
 
     create_table()

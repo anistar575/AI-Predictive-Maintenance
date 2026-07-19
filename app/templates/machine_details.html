@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Details - INDHAN AI</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/machines.css') }}">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+        
+        .info-card, .status-card, .history-log-card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            row-gap: 16px;
+            column-gap: 24px;
+            margin-top: 20px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .info-value {
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            height: 40px;
+            padding: 0 16px;
+            background: #e2e8f0;
+            color: #1e293b;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            transition: background 0.15s ease;
+        }
+        
+        .btn-back:hover {
+            background: #cbd5e1;
+        }
+        
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+        
+        .sensor-box {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .sensor-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .sensor-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--navy-dark);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 960px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-industry"></i>
+            <div>
+                <h2>INDHAN AI</h2>
+                <span>Industrial Predictive Maintenance</span>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/">Dashboard</a></li>
+            <li><a href="/history">History</a></li>
+            <li><a href="/machines">Machines</a></li>
+        </ul>
+    </nav>
+
+    <div class="status-header">
+        <h1 class="page-title" style="margin-bottom: 0;">
+            <i class="fas fa-microchip"></i>
+            Machine Details: {{ machine[2] }}
+        </h1>
+        <a href="/machines" class="btn-back">
+            <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to Machines
+        </a>
+    </div>
+    
+    <div style="margin-top: 32px;" class="details-grid">
+        <!-- Card 1: Machine Information -->
+        <div class="info-card">
+            <h2>
+                <i class="fas fa-info-circle"></i>
+                Machine Information
+            </h2>
+            <div class="info-grid">
+                <div class="info-label">Machine Code:</div>
+                <div class="info-value"><code>{{ machine[1] }}</code></div>
+                
+                <div class="info-label">Machine Name:</div>
+                <div class="info-value">{{ machine[2] }}</div>
+                
+                <div class="info-label">Machine Type:</div>
+                <div class="info-value">
+                    {% if machine[3] == 'H' %}
+                    High (H)
+                    {% elif machine[3] == 'M' %}
+                    Medium (M)
+                    {% else %}
+                    Low (L)
+                    {% endif %}
+                </div>
+                
+                <div class="info-label">Department:</div>
+                <div class="info-value">{{ machine[4] }}</div>
+                
+                <div class="info-label">Location:</div>
+                <div class="info-value">{{ machine[5] }}</div>
+                
+                <div class="info-label">Installation Date:</div>
+                <div class="info-value">{{ machine[6] if machine[6] else '--' }}</div>
+
+                <div class="info-label">Registered At:</div>
+                <div class="info-value">{{ machine[8] }}</div>
+            </div>
+        </div>
+        
+        <!-- Card 2: Current Status & Latest Diagnostic -->
+        <div class="status-card">
+            <h2>
+                <i class="fas fa-heartbeat"></i>
+                Current Status & Diagnostics
+            </h2>
+            
+            <div style="display: flex; align-items: center; gap: 16px; margin: 16px 0;">
+                <span style="font-size: 16px; font-weight: 600;">Status Status:</span>
+                {% if 'Healthy' in machine[7] %}
+                <span class="status-badge healthy" style="font-size: 14px; padding: 6px 16px;">{{ machine[7] }}</span>
+                {% elif 'Warning' in machine[7] %}
+                <span class="status-badge warning" style="font-size: 14px; padding: 6px 16px;">{{ machine[7] }}</span>
+                {% elif 'Critical' in machine[7] %}
+                <span class="status-badge critical" style="font-size: 14px; padding: 6px 16px;">{{ machine[7] }}</span>
+                {% else %}
+                <span class="status-badge healthy" style="font-size: 14px; padding: 6px 16px;">{{ machine[7] }}</span>
+                {% endif %}
+            </div>
+            
+            {% if latest_prediction %}
+            <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--navy-dark);">
+                    Latest Diagnostic Run ({{ latest_prediction[12] }})
+                </h3>
+                
+                <div class="metric" style="margin: 12px 0;">
+                    <span style="font-weight: 600; font-size: 14px;">Failure Probability</span>
+                    <strong style="float: right;">{{ (latest_prediction[9] * 100)|round(2) }}%</strong>
+                    <div class="progress">
+                        <div class="progress-fill" style="width: {{ latest_prediction[9] * 100 }}%; background: {% if 'Critical' in latest_prediction[8] %}var(--color-critical){% elif 'Warning' in latest_prediction[8] %}var(--color-warning){% else %}var(--color-healthy){% endif %};"></div>
+                    </div>
+                </div>
+                
+                <div class="metric" style="margin: 12px 0;">
+                    <span style="font-weight: 600; font-size: 14px;">Confidence (Model Used: {{ latest_prediction[11] }})</span>
+                    <strong style="float: right;">{{ latest_prediction[10] }}</strong>
+                    <div class="progress">
+                        <!-- Convert confidence string like "99.95%" to width -->
+                        <div class="progress-fill blue" style="width: {{ latest_prediction[10].replace('%', '') }}%;"></div>
+                    </div>
+                </div>
+                
+                <h4 style="font-size: 13px; font-weight: 600; margin: 24px 0 12px 0; color: var(--text-secondary); text-transform: uppercase;">Sensor Telemetry</h4>
+                <div class="sensor-grid">
+                    <div class="sensor-box">
+                        <div class="sensor-label">Air Temp</div>
+                        <div class="sensor-value">{{ latest_prediction[2] }} K</div>
+                    </div>
+                    <div class="sensor-box">
+                        <div class="sensor-label">Process Temp</div>
+                        <div class="sensor-value">{{ latest_prediction[3] }} K</div>
+                    </div>
+                    <div class="sensor-box">
+                        <div class="sensor-label">Rot. Speed</div>
+                        <div class="sensor-value">{{ latest_prediction[4] }} RPM</div>
+                    </div>
+                    <div class="sensor-box">
+                        <div class="sensor-label">Torque</div>
+                        <div class="sensor-value">{{ latest_prediction[5] }} Nm</div>
+                    </div>
+                    <div class="sensor-box">
+                        <div class="sensor-label">Tool Wear</div>
+                        <div class="sensor-value">{{ latest_prediction[6] }} min</div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-calculator"></i>
+                <p>No diagnostics run yet. Use the dashboard to perform diagnostics on this machine.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Prediction History Log -->
+    <div class="history-log-card">
+        <h2>
+            <i class="fas fa-history"></i>
+            Diagnostic History Log
+        </h2>
+        
+        {% if predictions %}
+        <div style="overflow-x: auto; margin-top: 16px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Classification</th>
+                        <th>Health Status</th>
+                        <th>Failure Prob.</th>
+                        <th>Confidence</th>
+                        <th>Model Used</th>
+                        <th>Diagnostic Date/Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in predictions %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>
+                            {% if row[7] == 'Failure' %}
+                            <span style="color: var(--color-critical); font-weight: 700;">
+                                <i class="fas fa-exclamation-triangle"></i> FAILURE
+                            </span>
+                            {% else %}
+                            <span style="color: var(--color-healthy); font-weight: 700;">
+                                <i class="fas fa-check-circle"></i> HEALTHY
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if 'Healthy' in row[8] %}
+                            <span class="status-badge healthy">{{ row[8] }}</span>
+                            {% elif 'Warning' in row[8] %}
+                            <span class="status-badge warning">{{ row[8] }}</span>
+                            {% else %}
+                            <span class="status-badge critical">{{ row[8] }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ (row[9] * 100)|round(2) }}%</td>
+                        <td>{{ row[10] }}</td>
+                        <td>{{ row[11] }}</td>
+                        <td>{{ row[12] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-database"></i>
+            <p>No prediction records exist for this machine.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+
+</html>

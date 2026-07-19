@@ -9,7 +9,10 @@ from database.database import (
     delete_machine,
     get_machine,
     update_machine_status,
-    get_dashboard_stats
+    get_dashboard_stats,
+    get_machine_by_id,
+    update_machine,
+    get_predictions_by_machine
 )
 from flask import Blueprint, render_template, request, jsonify
 
@@ -131,3 +134,56 @@ def delete_machine_route(id):
     delete_machine(id)
 
     return redirect("/machines")
+
+
+@main.route("/edit-machine/<int:id>", methods=["GET", "POST"])
+def edit_machine_route(id):
+    machine = get_machine_by_id(id)
+    if not machine:
+        return "Machine not found", 404
+
+    if request.method == "POST":
+        machine_code = request.form["machine_code"]
+        machine_name = request.form["machine_name"]
+        machine_type = request.form["machine_type"]
+        department = request.form["department"]
+        location = request.form["location"]
+        installation_date = request.form["installation_date"]
+
+        success = update_machine(
+            machine_id=id,
+            machine_code=machine_code,
+            machine_name=machine_name,
+            machine_type=machine_type,
+            department=department,
+            location=location,
+            installation_date=installation_date
+        )
+        if success:
+            return redirect("/machines")
+        else:
+            return render_template(
+                "edit_machine.html",
+                machine=machine,
+                error="Error: Machine Code must be unique. Another machine may already use this code."
+            )
+
+    return render_template("edit_machine.html", machine=machine)
+
+
+@main.route("/machine/<string:machine_code>")
+def machine_details_route(machine_code):
+    machine = get_machine(machine_code)
+    if not machine:
+        return "Machine not found", 404
+
+    predictions = get_predictions_by_machine(machine_code)
+    latest_prediction = predictions[0] if predictions else None
+
+
+    return render_template(
+        "machine_details.html",
+        machine=machine,
+        predictions=predictions,
+        latest_prediction=latest_prediction
+    )
