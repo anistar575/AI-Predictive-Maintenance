@@ -47,10 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!valid) return;
 
-            // Disable button
+            // Disable button and show overlay
             button.disabled = true;
             button.innerHTML =
                 '<i class="fas fa-spinner fa-spin"></i> Running Diagnostics...';
+            
+            const overlay = document.getElementById("loading-overlay");
+            if (overlay) {
+                overlay.classList.add("active");
+            }
 
             try {
 
@@ -122,6 +127,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             } finally {
 
+                if (overlay) {
+                    overlay.classList.remove("active");
+                }
                 button.disabled = false;
                 button.innerHTML =
                     '<i class="fas fa-microchip"></i> Run Diagnostics';

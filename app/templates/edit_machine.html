@@ -15,26 +15,27 @@
     <style>
         .edit-container {
             max-width: 600px;
-            margin: 40px auto;
+            margin: 0 auto;
         }
         .btn-cancel {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            height: 48px;
+            height: 46px;
             padding: 0 24px;
             border-radius: 8px;
-            background: #e2e8f0;
-            color: #1e293b;
-            font-size: 16px;
+            background: #1f2937;
+            color: var(--text-primary);
+            font-size: 15px;
             font-weight: 600;
             text-decoration: none;
-            transition: background 0.15s ease;
+            transition: all 0.2s ease;
             margin-right: 12px;
             border: 1px solid var(--border-color);
         }
         .btn-cancel:hover {
-            background: #cbd5e1;
+            background: #374151;
+            border-color: var(--text-secondary);
         }
         .form-actions {
             display: flex;
@@ -43,13 +44,13 @@
         }
         .error-banner {
             background: var(--color-critical-bg);
-            color: #991b1b;
+            color: #ef4444;
             padding: 12px 16px;
             border-radius: 8px;
             margin-bottom: 24px;
             font-weight: 600;
             font-size: 14px;
-            border: 1px solid #fee2e2;
+            border: 1px solid rgba(239, 68, 68, 0.2);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -59,102 +60,152 @@
 
 <body>
 
-<div class="container">
-
-    <nav class="navbar">
-        <div class="logo">
+<div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
             <i class="fas fa-industry"></i>
             <div>
                 <h2>INDHAN AI</h2>
-                <span>Industrial Predictive Maintenance</span>
+                <span>Predictive Maintenance</span>
             </div>
         </div>
-        <ul class="nav-links">
-            <li><a href="/">Dashboard</a></li>
-            <li><a href="/history">History</a></li>
-            <li><a href="/machines">Machines</a></li>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/machines" class="active">
+                    <i class="fas fa-industry"></i> Machine Registry
+                </a>
+            </li>
+            <li>
+                <a href="/history">
+                    <i class="fas fa-history"></i> Diagnostics History
+                </a>
+            </li>
+            
+            <!-- Future Modules Blocked Out for Platform Completeness -->
+            <li>
+                <a class="disabled-item">
+                    <i class="fas fa-chart-pie"></i> Advanced Analytics
+                    <span class="badge-upcoming">Phase 3</span>
+                </a>
+            </li>
+            <li>
+                <a class="disabled-item">
+                    <i class="fas fa-calendar-alt"></i> Maintenance
+                    <span class="badge-upcoming">Phase 5</span>
+                </a>
+            </li>
+            <li>
+                <a class="disabled-item">
+                    <i class="fas fa-file-download"></i> Reports
+                    <span class="badge-upcoming">Phase 7</span>
+                </a>
+            </li>
         </ul>
-    </nav>
+    </aside>
 
-    <div class="edit-container">
-        <div class="card">
-            <h2>
-                <i class="fas fa-edit"></i>
-                Edit Machine Details
-            </h2>
-
-            {% if error %}
-            <div class="error-banner">
-                <i class="fas fa-exclamation-circle"></i>
-                {{ error }}
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Content Header -->
+        <header class="content-header">
+            <div>
+                <h1>Edit Machine</h1>
+                <p style="color: var(--text-secondary); margin-top: 4px; font-size: 14px;">
+                    Modify configurations and details for registered industrial machine units.
+                </p>
             </div>
-            {% endif %}
+            
+            <div class="system-status">
+                <span class="status-dot"></span>
+                System Status: Online
+            </div>
+        </header>
 
-            <form method="POST">
-                <div class="form-group">
-                    <label>Machine Code</label>
-                    <input type="text"
-                        name="machine_code"
-                        value="{{ machine[1] }}"
-                        placeholder="MC001"
-                        required>
-                </div>
+        <div class="edit-container">
+            <div class="card">
+                <h2>
+                    <i class="fas fa-edit"></i>
+                    Edit Machine Details
+                </h2>
 
-                <div class="form-group">
-                    <label>Machine Name</label>
-                    <input type="text"
-                           name="machine_name"
-                           value="{{ machine[2] }}"
-                           placeholder="Hydraulic Press"
-                           required>
+                {% if error %}
+                <div class="error-banner">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ error }}
                 </div>
+                {% endif %}
 
-                <div class="form-group">
-                    <label>Machine Type</label>
-                    <select name="machine_type" id="machine_type" required>
-                        <option value="L" {% if machine[3] == 'L' %}selected{% endif %}>Low (L)</option>
-                        <option value="M" {% if machine[3] == 'M' %}selected{% endif %}>Medium (M)</option>
-                        <option value="H" {% if machine[3] == 'H' %}selected{% endif %}>High (H)</option>
-                    </select>
-                </div>
+                <form method="POST">
+                    <div class="form-group">
+                        <label>Machine Code</label>
+                        <input type="text"
+                            name="machine_code"
+                            value="{{ machine[1] }}"
+                            placeholder="MC001"
+                            required>
+                    </div>
 
-                <div class="form-group">
-                    <label>Department</label>
-                    <input type="text"
-                           name="department"
-                           value="{{ machine[4] }}"
-                           placeholder="Production / Assembly"
-                           required>
-                </div>
+                    <div class="form-group">
+                        <label>Machine Name</label>
+                        <input type="text"
+                               name="machine_name"
+                               value="{{ machine[2] }}"
+                               placeholder="Hydraulic Press"
+                               required>
+                    </div>
 
-                <div class="form-group">
-                    <label>Location</label>
-                    <input type="text"
-                           name="location"
-                           value="{{ machine[5] }}"
-                           placeholder="Plant A / Plant B"
-                           required>
-                </div>
+                    <div class="form-group">
+                        <label>Machine Type</label>
+                        <select name="machine_type" id="machine_type" required style="background-color: var(--bg-main); color: var(--text-primary);">
+                            <option value="L" {% if machine[3] == 'L' %}selected{% endif %}>Low (L)</option>
+                            <option value="M" {% if machine[3] == 'M' %}selected{% endif %}>Medium (M)</option>
+                            <option value="H" {% if machine[3] == 'H' %}selected{% endif %}>High (H)</option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label>Installation Date</label>
-                    <input type="date"
-                           name="installation_date"
-                           value="{{ machine[6] }}">
-                </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <input type="text"
+                               name="department"
+                               value="{{ machine[4] }}"
+                               placeholder="Production / Assembly"
+                               required>
+                    </div>
 
-                <div class="form-actions">
-                    <a href="/machines" class="btn-cancel">
-                        <i class="fas fa-times" style="margin-right: 8px;"></i> Cancel
-                    </a>
-                    <button type="submit" class="btn-save" style="width: auto; padding: 0 32px;">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                </div>
-            </form>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text"
+                               name="location"
+                               value="{{ machine[5] }}"
+                               placeholder="Plant A / Plant B"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Installation Date</label>
+                        <input type="date"
+                               name="installation_date"
+                               value="{{ machine[6] }}">
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="/machines" class="btn-cancel">
+                            <i class="fas fa-times" style="margin-right: 8px;"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-save" style="width: auto; padding: 0 32px;">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
-
+    </main>
 </div>
 
 </body>

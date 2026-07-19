@@ -59,7 +59,7 @@
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    background: #fff;
+    background: var(--bg-main);
     color: var(--text-primary);
 }
 
@@ -117,12 +117,12 @@ td {
     font-size: 14px;
     color: var(--text-primary);
     border-bottom: 1px solid var(--border-color);
-    background: #fff;
+    background: var(--card-bg);
     text-align: left;
 }
 
 tbody tr:hover td {
-    background: #f8fafc;
+    background: var(--border-color);
 }
 
 /* ---------------- ACTIONS / BUTTONS ---------------- */

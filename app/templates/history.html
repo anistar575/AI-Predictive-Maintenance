@@ -17,69 +17,133 @@
 
 <body>
 
-<div class="container">
-
-    <nav class="navbar">
-        <div class="logo">
+<div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
             <i class="fas fa-industry"></i>
             <div>
                 <h2>INDHAN AI</h2>
-                <span>Industrial Predictive Maintenance</span>
+                <span>Predictive Maintenance</span>
             </div>
         </div>
-        <ul class="nav-links">
-            <li><a href="/">Dashboard</a></li>
-            <li><a href="/history">History</a></li>
-            <li><a href="/machines">Machines</a></li>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/machines">
+                    <i class="fas fa-industry"></i> Machine Registry
+                </a>
+            </li>
+            <li>
+                <a href="/history" class="active">
+                    <i class="fas fa-history"></i> Diagnostics History
+                </a>
+            </li>
+            
+            <!-- Future Modules Blocked Out for Platform Completeness -->
+            <li>
+                <a class="disabled-item">
+                    <i class="fas fa-chart-pie"></i> Advanced Analytics
+                    <span class="badge-upcoming">Phase 3</span>
+                </a>
+            </li>
+            <li>
+                <a class="disabled-item">
+                    <i class="fas fa-calendar-alt"></i> Maintenance
+                    <span class="badge-upcoming">Phase 5</span>
+                </a>
+            </li>
+            <li>
+                <a class="disabled-item">
+                    <i class="fas fa-file-download"></i> Reports
+                    <span class="badge-upcoming">Phase 7</span>
+                </a>
+            </li>
         </ul>
-    </nav>
+    </aside>
 
-    <div class="history-card" style="margin-top: 0;">
-        <h2>
-            <i class="fas fa-history"></i>
-            Prediction History Log
-        </h2>
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Content Header -->
+        <header class="content-header">
+            <div>
+                <h1>Prediction History Log</h1>
+                <p style="color: var(--text-secondary); margin-top: 4px; font-size: 14px;">
+                    Comprehensive logs of all machine diagnostics and sensor prediction telemetry records.
+                </p>
+            </div>
+            
+            <div class="system-status">
+                <span class="status-dot"></span>
+                System Status: Online
+            </div>
+        </header>
 
-        <div class="history-toolbar">
-            <input
-                type="text"
-                id="historySearch"
-                placeholder="Search Machine ID or Type...">
+        <div class="history-card" style="margin-top: 0;">
+            <h2>
+                <i class="fas fa-history"></i>
+                Prediction History Log
+            </h2>
 
-            <select id="statusFilter">
-                <option value="all">All Status</option>
-                <option value="Healthy">Healthy</option>
-                <option value="Warning">Warning</option>
-                <option value="Critical">Critical</option>
-            </select>
+            <div class="history-toolbar">
+                <input
+                    type="text"
+                    id="historySearch"
+                    placeholder="Search Machine ID or Type...">
+
+                <select id="statusFilter" style="background-color: var(--bg-main); color: var(--text-primary); border: 1.5px solid var(--border-color); border-radius: 8px; outline: none; padding: 10px 16px;">
+                    <option value="all">All Status</option>
+                    <option value="Healthy">Healthy</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Critical">Critical</option>
+                </select>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr class="history-row">
+                            <th>ID</th>
+                            <th>Machine</th>
+                            <th>Status</th>
+                            <th>Failure Probability</th>
+                            <th>Confidence</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in predictions %}
+                        <tr class="history-row">
+                            <td>{{ row[0] }}</td>
+                            <td>
+                                <a href="/machine/{{ row[13] if row[13] else row[1] }}" style="font-weight: 600; color: var(--primary-blue); text-decoration: none;">
+                                    {{ row[13] if row[13] else row[1] }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if 'Healthy' in row[8] %}
+                                <span class="status-badge healthy">{{ row[8] }}</span>
+                                {% elif 'Warning' in row[8] %}
+                                <span class="status-badge warning">{{ row[8] }}</span>
+                                {% else %}
+                                <span class="status-badge critical">{{ row[8] }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ (row[9] * 100)|round(2) }}%</td>
+                            <td>{{ row[10] }}</td>
+                            <td>{{ row[12] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-
-        <table>
-            <thead>
-                <tr class="history-row">
-                    <th>ID</th>
-                    <th>Machine</th>
-                    <th>Status</th>
-                    <th>Failure Probability</th>
-                    <th>Confidence</th>
-                    <th>Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in predictions %}
-                <tr class="history-row">
-                    <td>{{ row[0] }}</td>
-                    <td>{{ row[13] if row[13] else row[1] }}</td>
-                    <td>{{ row[8] }}</td>
-                    <td>{{ (row[9] * 100)|round(2) }}%</td>
-                    <td>{{ row[10] }}</td>
-                    <td>{{ row[12] }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
+    </main>
 </div>
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
