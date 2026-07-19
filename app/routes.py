@@ -12,7 +12,9 @@ from database.database import (
     get_dashboard_stats,
     get_machine_by_id,
     update_machine,
-    get_predictions_by_machine
+    get_predictions_by_machine,
+    get_predictions_with_machine_details,
+    get_all_departments
 )
 from flask import Blueprint, render_template, request, jsonify
 
@@ -186,4 +188,44 @@ def machine_details_route(machine_code):
         machine=machine,
         predictions=predictions,
         latest_prediction=latest_prediction
+    )
+
+
+@main.route("/analytics")
+def analytics_route():
+    import json
+    predictions = get_predictions_with_machine_details()
+    machines = get_all_machines()
+    departments = get_all_departments()
+
+    # Let's fix the serialization to use the correct indices!
+    serialized_predictions = []
+    for row in predictions:
+        serialized_predictions.append({
+            "id": row[0],
+            "machine_code": row[1],
+            "machine_type": row[2],
+            "air_temp": row[3],
+            "process_temp": row[4],
+            "rotational_speed": row[5],
+            "torque": row[6],
+            "tool_wear": row[7],
+            "prediction": row[8],
+            "health_status": row[9],
+            "failure_probability": row[10],
+            "confidence": row[11],
+            "model_used": row[12],
+            "prediction_time": row[13],
+            "machine_name": row[14] if row[14] else "Unknown",
+            "department": row[15] if row[15] else "Unassigned",
+            "location": row[16] if row[16] else "Unknown"
+        })
+
+    predictions_json = json.dumps(serialized_predictions)
+
+    return render_template(
+        "analytics.html",
+        predictions_json=predictions_json,
+        machines=machines,
+        departments=departments
     )

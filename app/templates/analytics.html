@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Analytics - INDHAN AI</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .filter-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 32px;
+        }
+
+        .filter-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .filter-form-grid .form-group {
+            margin-bottom: 0;
+        }
+
+        .btn-reset {
+            height: 44px;
+            background: #1f2937;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 20px;
+        }
+
+        .btn-reset:hover {
+            background: #374151;
+            border-color: var(--text-secondary);
+        }
+
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            padding: 20px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .kpi-card h3 {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .kpi-card h2 {
+            font-size: 26px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .kpi-card i {
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 28px;
+            color: rgba(255, 255, 255, 0.05);
+        }
+
+        .ranking-card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 32px;
+        }
+
+        .ranking-card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ranking-card h2 i {
+            color: var(--primary-blue);
+        }
+
+        .stats-table-wrapper {
+            margin-top: 16px;
+        }
+
+        .stats-table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stats-table-wrapper th, .stats-table-wrapper td {
+            padding: 12px 16px;
+            font-size: 13px;
+        }
+
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .risk-badge.high {
+            background: var(--color-critical-bg);
+            color: var(--color-critical);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+        }
+
+        .risk-badge.medium {
+            background: var(--color-warning-bg);
+            color: var(--color-warning);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
+
+        .risk-badge.low {
+            background: var(--color-healthy-bg);
+            color: var(--color-healthy);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        @media (max-width: 960px) {
+            .kpi-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .kpi-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-industry"></i>
+            <div>
+                <h2>INDHAN AI</h2>
+                <span>Predictive Maintenance</span>
+            </div>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/machines">
+                    <i class="fas fa-industry"></i> Machine Registry
+                </a>
+            </li>
+            <li>
+                <a href="/history">
+                    <i class="fas fa-history"></i> Diagnostics History
+                </a>
+            </li>
+            <li>
+                <a href="/analytics" class="active">
+                    <i class="fas fa-chart-pie"></i> Advanced Analytics
+                </a>
+            </li>
+            
+            <!-- Future Modules Blocked Out for Platform Completeness -->
+            <li>
+                <a class="disabled-item">
+                    <i class="fas fa-calendar-alt"></i> Maintenance
+                    <span class="badge-upcoming">Phase 5</span>
+                </a>
+            </li>
+            <li>
+                <a class="disabled-item">
+                    <i class="fas fa-file-download"></i> Reports
+                    <span class="badge-upcoming">Phase 7</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Content Header -->
+        <header class="content-header">
+            <div>
+                <h1>Advanced Analytics</h1>
+                <p style="color: var(--text-secondary); margin-top: 4px; font-size: 14px;">
+                    Deep-dive statistics, health trends, risk factors, and hardware utilization profiles.
+                </p>
+            </div>
+            
+            <div class="system-status">
+                <span class="status-dot"></span>
+                System Status: Online
+            </div>
+        </header>
+
+        <!-- Filters Section -->
+        <div class="filter-card">
+            <div class="filter-form-grid">
+                <div class="form-group">
+                    <label>Machine Unit</label>
+                    <select id="filterMachine" style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                        <option value="all">All Machines</option>
+                        {% for machine in machines %}
+                        <option value="{{ machine[1] }}">{{ machine[1] }} - {{ machine[2] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Department</label>
+                    <select id="filterDepartment" style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                        <option value="all">All Departments</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept }}">{{ dept }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" id="filterStartDate" style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                </div>
+
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" id="filterEndDate" style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                </div>
+
+                <div class="form-group">
+                    <label>Health status</label>
+                    <select id="filterStatus" style="background-color: var(--bg-main); color: var(--text-primary); border-color: var(--border-color);">
+                        <option value="all">All Statuses</option>
+                        <option value="Healthy">Healthy</option>
+                        <option value="Warning">Warning</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+
+                <button id="btnResetFilters" class="btn-reset">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <h3>Total Diagnostic Runs</h3>
+                <h2 id="kpiTotalRuns">--</h2>
+                <i class="fas fa-calculator"></i>
+            </div>
+            <div class="kpi-card">
+                <h3>Reliability Rate</h3>
+                <h2 id="kpiReliability">--</h2>
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="kpi-card">
+                <h3>Max Tool Wear</h3>
+                <h2 id="kpiMaxWear">--</h2>
+                <i class="fas fa-wrench"></i>
+            </div>
+            <div class="kpi-card">
+                <h3>Avg Failure Prob</h3>
+                <h2 id="kpiAvgFailure">--</h2>
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+        </div>
+
+        <!-- Charts Grid 1 -->
+        <div class="analytics-grid">
+            <div class="chart-card" style="height: auto; min-height: 380px;">
+                <h2>
+                    <i class="fas fa-chart-area"></i>
+                    Health Distribution Trend
+                </h2>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="healthTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card" style="height: auto; min-height: 380px;">
+                <h2>
+                    <i class="fas fa-chart-bar"></i>
+                    Diagnostic Volume Per Day
+                </h2>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="predictionsVolumeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid 2 -->
+        <div class="analytics-grid">
+            <div class="chart-card" style="height: auto; min-height: 380px;">
+                <h2>
+                    <i class="fas fa-chart-pie"></i>
+                    Department Health Statuses
+                </h2>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="deptHealthChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card" style="height: auto; min-height: 380px;">
+                <h2>
+                    <i class="fas fa-network-wired"></i>
+                    Machine Usage (Max Tool Wear)
+                </h2>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="utilizationChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lists/Tables Grid -->
+        <div class="analytics-grid">
+            <!-- Top Risk Machines -->
+            <div class="ranking-card">
+                <h2>
+                    <i class="fas fa-skull-crossbones"></i>
+                    Top Risk Machines
+                </h2>
+                <div class="stats-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Machine Code</th>
+                                <th>Machine Name</th>
+                                <th>Avg Failure Prob.</th>
+                                <th>Risk Category</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topRiskTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Historical Statistics Averages (Healthy vs Failures) -->
+            <div class="ranking-card">
+                <h2>
+                    <i class="fas fa-wave-square"></i>
+                    Telemetry Comparison (Averages)
+                </h2>
+                <div class="stats-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Metric (Average)</th>
+                                <th style="color: var(--color-healthy);">Healthy Runs</th>
+                                <th style="color: var(--color-critical);">Failed Runs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Air Temperature (K)</td>
+                                <td id="avgAirHealthy">--</td>
+                                <td id="avgAirFailed">--</td>
+                            </tr>
+                            <tr>
+                                <td>Process Temperature (K)</td>
+                                <td id="avgProcessHealthy">--</td>
+                                <td id="avgProcessFailed">--</td>
+                            </tr>
+                            <tr>
+                                <td>Rotational Speed (RPM)</td>
+                                <td id="avgSpeedHealthy">--</td>
+                                <td id="avgSpeedFailed">--</td>
+                            </tr>
+                            <tr>
+                                <td>Torque (Nm)</td>
+                                <td id="avgTorqueHealthy">--</td>
+                                <td id="avgTorqueFailed">--</td>
+                            </tr>
+                            <tr>
+                                <td>Tool Wear (min)</td>
+                                <td id="avgWearHealthy">--</td>
+                                <td id="avgWearFailed">--</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Serialized prediction dataset passed from routes -->
+<script>
+    const predictionsDataset = {{ predictions_json | safe }};
+</script>
+
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+</body>
+
+</html>

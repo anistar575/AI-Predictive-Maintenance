@@ -429,6 +429,37 @@ def get_predictions_by_machine(machine_code):
     return rows
 
 
+def get_predictions_with_machine_details():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT p.id, p.machine_code, p.machine_type, p.air_temperature, 
+               p.process_temperature, p.rotational_speed, p.torque, 
+               p.tool_wear, p.prediction, p.health_status, p.failure_probability, 
+               p.confidence, p.model_used, p.prediction_time,
+               m.machine_name, m.department, m.location
+        FROM prediction_history p
+        LEFT JOIN machines m ON p.machine_code = m.machine_code
+        ORDER BY p.prediction_time DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+
+def get_all_departments():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT DISTINCT department 
+        FROM machines 
+        WHERE department IS NOT NULL AND department != ''
+    """)
+    depts = [r[0] for r in cursor.fetchall()]
+    conn.close()
+    return depts
+
+
 def initialize_database():
 
     create_table()
